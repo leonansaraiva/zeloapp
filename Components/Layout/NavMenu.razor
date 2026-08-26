@@ -23,9 +23,16 @@
         <hr class="border-secondary my-2" />
 
         <div class="text-white-50 small fw-bold mb-2">PORTAL DA FAMÍLIA</div>
-        <a href="portal/pai" class="btn btn-primary text-start py-2 fw-semibold">
+        <a href="portal/pai" class="btn btn-primary text-start py-2 fw-semibold mb-4">
             📱 Visão do Pai / Mãe
         </a>
+
+        <hr class="border-secondary my-2" />
+
+        <!-- Opção de Instalação dentro do Menu -->
+        <button class="btn btn-success text-start py-2 fw-bold w-100 mt-2" onclick="instalarPWA()">
+            📲 Instalar Aplicativo no Celular
+        </button>
     </div>
 }
 
@@ -46,17 +53,21 @@
     <hr class="border-secondary my-3" />
 
     <div class="text-white-50 small fw-bold mb-2">PORTAL DA FAMÍLIA</div>
-    <div class="nav flex-column">
+    <div class="nav flex-column mb-4">
         <NavLink class="nav-link text-white-50 py-2 fs-6" href="portal/pai">
             📱 Visão do Pai / Mãe
         </NavLink>
     </div>
+
+    <button class="btn btn-outline-success btn-sm w-100 fw-bold mt-3" onclick="instalarPWA()">
+        📲 Instalar ZeloApp
+    </button>
 </div>
 
-<!-- Botão Flutuante de Instalação do PWA -->
-<div id="pwa-install-btn">
+<!-- Botão Flutuante de Instalação do PWA (Sempre disponível no canto) -->
+<div id="pwa-install-btn" style="display: block;">
     <button class="pwa-float-btn" onclick="instalarPWA()">
-        📲 Instalar ZeloApp
+        📲 Instalar App
     </button>
 </div>
 
