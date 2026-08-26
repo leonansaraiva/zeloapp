@@ -1,15 +1,17 @@
 ﻿@rendermode InteractiveServer
 
-<div class="top-row px-3 bg-primary text-white d-flex justify-content-between align-items-center shadow-sm" style="height: 56px;">
+<!-- Header Mobile -->
+<div class="top-row px-3 bg-primary text-white d-flex d-md-none justify-content-between align-items-center shadow-sm" style="height: 56px;">
     <a class="navbar-brand fw-bold text-white fs-5 m-0" href="">🛡️ ZeloApp</a>
     <button class="btn text-white fs-4 p-0 border-0" @onclick="ToggleNav">
         @(menuAberto ? "✕" : "☰")
     </button>
 </div>
 
+<!-- Menu Overlay para Telas Pequenas (Mobile) -->
 @if (menuAberto)
 {
-    <div class="mobile-nav-overlay" @onclick="FecharNav">
+    <div class="mobile-nav-overlay d-md-none" @onclick="FecharNav">
         <div class="text-white-50 small fw-bold mb-2">SUPER ADMIN</div>
         <a href="" class="btn btn-outline-light text-start mb-2 py-2 fw-semibold">
             🏠 Painel Geral
@@ -26,6 +28,30 @@
         </a>
     </div>
 }
+
+<!-- Menu Lateral Fixo para Telas Grandes (Desktop/Web) -->
+<div class="d-none d-md-block bg-dark text-white p-3 h-100 min-vh-100">
+    <div class="navbar-brand fw-bold text-white fs-4 mb-4 d-block">🛡️ ZeloApp</div>
+
+    <div class="text-white-50 small fw-bold mb-2">SUPER ADMIN</div>
+    <div class="nav flex-column mb-4">
+        <NavLink class="nav-link text-white-50 py-2 fs-6" href="" Match="NavLinkMatch.All">
+            🏠 Painel Geral
+        </NavLink>
+        <NavLink class="nav-link text-white-50 py-2 fs-6" href="superadmin/escolas">
+            🏫 Gestão de Escolas
+        </NavLink>
+    </div>
+
+    <hr class="border-secondary my-3" />
+
+    <div class="text-white-50 small fw-bold mb-2">PORTAL DA FAMÍLIA</div>
+    <div class="nav flex-column">
+        <NavLink class="nav-link text-white-50 py-2 fs-6" href="portal/pai">
+            📱 Visão do Pai / Mãe
+        </NavLink>
+    </div>
+</div>
 
 <!-- Botão Flutuante de Instalação do PWA -->
 <div id="pwa-install-btn">

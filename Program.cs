@@ -3,11 +3,11 @@ using ZeloApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração Blazor Server
+// Adiciona Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Banco em memória
+// Registra Banco de Dados em Memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
@@ -19,14 +19,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// GARANTE QUE O BANCO DE DADOS EM MEMÓRIA É POPULADO COM O MOCK
+// Executa o DbSeeder para carregar o Mock de dados
 DbSeeder.CarregarDadosIniciais(app.Services);
 
 app.Run();
