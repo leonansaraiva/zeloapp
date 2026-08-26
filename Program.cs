@@ -1,19 +1,28 @@
 using Microsoft.EntityFrameworkCore;
 using ZeloApp.Models;
 
-// Desativa o reloadOnChange para evitar o estouro de inotify no Render
+// 1. Desativa o comportamento padrão de monitoramento de arquivos do Host
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    Args = args
+    Args = args,
+    ContentRootPath = Directory.GetCurrentDirectory()
 });
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+// 2. Limpa os provedores de configuração padrão (que causam o estouro de inotify)
+builder.Configuration.Sources.Clear();
 
-// Adiciona Blazor Server
+// 3. Adiciona as configurações explicitamente sem monitorar mudanças de arquivo em tempo real
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables();
+
+// Configurações do Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Registra Banco em Memória
+// Banco em Memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
@@ -31,7 +40,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Carga do Mock de Dados
+// Carrega os dados Iniciais (Mock)
 DbSeeder.CarregarDadosIniciais(app.Services);
 
 app.Run();
