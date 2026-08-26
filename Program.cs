@@ -1,22 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using ZeloApp.Models;
 
-// 1. Desativa o comportamento padrão de monitoramento de arquivos do Host
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = Directory.GetCurrentDirectory()
 });
 
-// 2. Limpa os provedores de configuração padrão (que causam o estouro de inotify)
+// Desativa o monitoramento constante de arquivos no Linux (evita estouro de inotify/crash 139)
 builder.Configuration.Sources.Clear();
-
-// 3. Adiciona as configurações explicitamente sem monitorar mudanças de arquivo em tempo real
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
     .AddEnvironmentVariables();
+
+// CONFIGURAÇÃO DA PORTA PARA O RENDER.COM
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Configurações do Blazor Server
 builder.Services.AddRazorComponents()
@@ -40,7 +41,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Carrega os dados Iniciais (Mock)
+// Carrega o Mock de Dados Inicial
 DbSeeder.CarregarDadosIniciais(app.Services);
 
 app.Run();
