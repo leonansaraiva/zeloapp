@@ -1,29 +1,36 @@
 using Microsoft.EntityFrameworkCore;
 using ZeloApp.Models;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+// 1. Desativa explicitamente o uso de FileSystemWatcher/inotify do .NET no nível do processo
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "false");
+
+var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = Directory.GetCurrentDirectory()
 });
 
-// Desativa o monitoramento constante de arquivos no Linux (evita estouro de inotify/crash 139)
-builder.Configuration.Sources.Clear();
+// 2. Adiciona os serviços essenciais do WebHost manualmente
+builder.WebHost.UseKestrel(options =>
+{
+    var portEnv = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    if (int.TryParse(portEnv, out var port))
+    {
+        options.ListenAnyIP(port);
+    }
+});
+
+// 3. Adiciona configurações sem o watcher de arquivos (reloadOnChange = false)
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
     .AddEnvironmentVariables();
 
-// CONFIGURAÇÃO DA PORTA PARA O RENDER.COM
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
-// Configurações do Blazor Server
+// 4. Registrar Serviços
+builder.Services.AddRouting();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Banco em Memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
@@ -41,7 +48,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Carrega o Mock de Dados Inicial
+// Carrega o Seed de Dados
 DbSeeder.CarregarDadosIniciais(app.Services);
 
 app.Run();
