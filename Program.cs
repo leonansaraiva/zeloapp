@@ -26,4 +26,13 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
+
+
+// =========================================================================
+// CARGA INICIAL DE DADOS (MOCK)
+// Basta comentar a linha abaixo se quiser iniciar o banco totalmente vazio
+// =========================================================================
+DbSeeder.CarregarDadosIniciais(app.Services);
+
+
 app.Run();

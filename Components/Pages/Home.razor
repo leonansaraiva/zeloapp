@@ -1,7 +1,127 @@
 ﻿@page "/"
+@using ZeloApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Zelo - Painel do Sistema</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container py-4">
+    <!-- Cabeçalho de Boas-Vindas -->
+    <div class="p-4 mb-4 bg-primary text-white rounded-3 shadow-sm">
+        <div class="container-fluid py-2">
+            <h1 class="display-5 fw-bold">🛡️ Plataforma Zelo</h1>
+            <p class="col-md-8 fs-5">
+                Sistema integrado de gestão escolar e segurança. Selecione um módulo abaixo para começar.
+            </p>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <!-- Cards de Módulos e Atalhos -->
+    <div class="row g-4 mb-4">
+        <!-- Card: Total de Escolas -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="card-subtitle text-muted fw-semibold">ESCOLAS CADASTRADAS</h6>
+                        <span class="fs-4">🏫</span>
+                    </div>
+                    <h2 class="card-title fw-bold text-primary my-2">@totalEscolas</h2>
+                    <p class="card-text text-muted small">Instituições ativas na plataforma.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Status do Sistema -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="card-subtitle text-muted fw-semibold">STATUS DA PLATAFORMA</h6>
+                        <span class="fs-4">🟢</span>
+                    </div>
+                    <h2 class="card-title fw-bold text-success my-2">Online</h2>
+                    <p class="card-text text-muted small">Servidores e banco de dados operacionais.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Acesso Rápido -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle text-muted fw-semibold mb-2">GESTÃO SUPER ADMIN</h6>
+                        <h5 class="card-title fw-bold">Módulo de Escolas</h5>
+                        <p class="card-text text-muted small">Cadastre novas instituições, diretoria e permissões.</p>
+                    </div>
+                    <a href="/superadmin/escolas" class="btn btn-outline-primary w-100 fw-semibold mt-2">
+                        Gerenciar Escolas →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista Resumida de Escolas na Home -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold text-secondary">🏫 Escolas Cadastradas Recentemente</h5>
+            <a href="/superadmin/escolas" class="btn btn-primary btn-sm">+ Cadastrar Nova Escola</a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Escola</th>
+                        <th>CNPJ</th>
+                        <th>Gestor(a)</th>
+                        <th>Contato</th>
+                        <th class="text-end pe-3">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (escolasRecentes == null || !escolasRecentes.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Nenhuma escola cadastrada até o momento.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var escola in escolasRecentes)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="/superadmin/escolas/@escola.Id" class="fw-bold text-decoration-none text-primary">
+                                        @escola.Nome 🔗
+                                    </a>
+                                </td>
+                                <td>@escola.Cnpj</td>
+                                <td>@escola.NomeGestor</td>
+                                <td>@escola.EmailGestor</td>
+                                <td class="text-end pe-3">
+                                    <a href="/superadmin/escolas" class="btn btn-sm btn-light border">Ver Detalhes</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalEscolas = 0;
+    private List<Escola> escolasRecentes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalEscolas = await Db.Escolas.CountAsync();
+        escolasRecentes = await Db.Escolas.OrderByDescending(e => e.Id).Take(5).ToListAsync();
+    }
+}

@@ -36,7 +36,11 @@
                 {
                     <tr>
                         <td>@item.Id</td>
-                        <td><strong>@item.Nome</strong></td>
+                        <td>
+                            <a href="/superadmin/escolas/@item.Id" class="fw-bold text-decoration-none text-primary">
+                                @item.Nome 🔗
+                            </a>
+                        </td>
                         <td>@item.Cnpj</td>
                         <td>@item.NomeGestor</td>
                         <td>@item.EmailGestor</td>
@@ -66,22 +70,26 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Nome da Escola / Creche</label>
-                            <InputText class="form-control" @bind-Value="novaEscola.Nome" placeholder="Ex: Creche Anjo Gabriel" />
+                            <InputText class="form-control" @bind-Value="novaEscola.Nome"
+                                       placeholder="Ex: Creche Anjo Gabriel" />
                             <ValidationMessage For="@(() => novaEscola.Nome)" class="text-danger" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">CNPJ</label>
-                            <InputText class="form-control" @bind-Value="novaEscola.Cnpj" placeholder="00.000.000/0001-00" />
+                            <InputText class="form-control" @bind-Value="novaEscola.Cnpj"
+                                       placeholder="00.000.000/0001-00" />
                             <ValidationMessage For="@(() => novaEscola.Cnpj)" class="text-danger" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nome do Gestor/Diretora</label>
-                            <InputText class="form-control" @bind-Value="novaEscola.NomeGestor" placeholder="Nome Completo" />
+                            <InputText class="form-control" @bind-Value="novaEscola.NomeGestor"
+                                       placeholder="Nome Completo" />
                             <ValidationMessage For="@(() => novaEscola.NomeGestor)" class="text-danger" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">E-mail do Gestor</label>
-                            <InputText class="form-control" @bind-Value="novaEscola.EmailGestor" placeholder="diretoria@escola.com" />
+                            <InputText class="form-control" @bind-Value="novaEscola.EmailGestor"
+                                       placeholder="diretoria@escola.com" />
                             <ValidationMessage For="@(() => novaEscola.EmailGestor)" class="text-danger" />
                         </div>
                     </div>

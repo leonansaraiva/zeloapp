@@ -9,4 +9,8 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Escola> Escolas => Set<Escola>();
+    public DbSet<GestorEscola> Gestores => Set<GestorEscola>();
+    public DbSet<Turma> Turmas => Set<Turma>();
+    public DbSet<Crianca> Criancas => Set<Crianca>();
+    public DbSet<Responsavel> Responsaveis => Set<Responsavel>();
 }
