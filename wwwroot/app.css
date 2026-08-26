@@ -1,4 +1,46 @@
-/* Botão Flutuante de Instalação PWA */
+html, body {
+    overflow-x: hidden !important;
+    width: 100%;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f6f9;
+}
+
+/* Card Estilo Mobile App com flexbox padronizado */
+.mobile-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    padding: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Força que quebras de texto longas não quebrem o botão */
+.card-title-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+/* Overlay do Menu Mobile */
+.mobile-nav-overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.95);
+    z-index: 9999;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
 #pwa-install-btn {
     position: fixed;
     bottom: 25px;

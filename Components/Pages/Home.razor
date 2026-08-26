@@ -13,32 +13,32 @@
         <p class="small m-0 opacity-75">Gestão escolar e segurança na entrega de alunos.</p>
     </div>
 
-    <!-- Cards de Métricas e Status -->
+    <!-- Metrics -->
     <div class="row g-2 mb-3">
         <div class="col-6">
             <div class="card border-0 shadow-sm border-start border-primary border-4 p-2">
-                <small class="text-muted fw-semibold" style="font-size: 0.7rem;">ESCOLAS</small>
+                <small class="text-muted fw-semibold" style="font-size: 0.7rem;">ESCOLAS CADASTRADAS</small>
                 <h3 class="fw-bold text-primary m-0 fs-4">@totalEscolas</h3>
-                <small class="text-muted" style="font-size: 0.7rem;">Instituições</small>
+                <small class="text-muted" style="font-size: 0.7rem;">Instituições ativas</small>
             </div>
         </div>
 
         <div class="col-6">
             <div class="card border-0 shadow-sm border-start border-success border-4 p-2">
-                <small class="text-muted fw-semibold" style="font-size: 0.7rem;">STATUS</small>
+                <small class="text-muted fw-semibold" style="font-size: 0.7rem;">STATUS DA PLATAFORMA</small>
                 <h3 class="fw-bold text-success m-0 fs-4">🟢 Online</h3>
                 <small class="text-muted" style="font-size: 0.7rem;">Operacional</small>
             </div>
         </div>
     </div>
 
-    <!-- Lista de Escolas Recentes em CARDS (Sem Tabela / Sem Scroll Horizontal) -->
+    <!-- Lista de Escolas Recentes com Total de Alunos -->
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h6 class="fw-bold m-0 text-dark">🏫 Escolas Cadastradas</h6>
         <a href="/superadmin/escolas" class="btn btn-primary btn-sm px-2 py-1 fs-7">+ Nova Escola</a>
     </div>
 
-    @if (escolasRecentes == null || !escolasRecentes.Any())
+    @if (escolasDTO == null || !escolasDTO.Any())
     {
         <div class="card border-0 shadow-sm p-3 text-center text-muted small">
             Nenhuma escola cadastrada no momento.
@@ -46,19 +46,19 @@
     }
     else
     {
-        @foreach (var escola in escolasRecentes)
+        @foreach (var dto in escolasDTO)
         {
             <div class="mobile-card mb-2 p-3">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <strong class="d-block text-dark fs-6">@escola.Nome</strong>
-                        <small class="text-muted d-block">CNPJ: @escola.Cnpj</small>
+                    <div style="max-width: 70%;">
+                        <strong class="d-block text-dark fs-6 text-truncate">@dto.Escola.Nome</strong>
+                        <small class="text-muted d-block">CNPJ: @dto.Escola.Cnpj</small>
                     </div>
-                    <span class="badge bg-success">Ativa</span>
+                    <span class="badge bg-primary">👶 @dto.TotalAlunos alunos</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
-                    <small class="text-muted">👤 @escola.NomeGestor</small>
-                    <a href="/superadmin/escolas/@escola.Id" class="btn btn-sm btn-outline-primary py-1 px-3 fw-semibold">
+                    <small class="text-muted text-truncate" style="max-width: 55%;">👤 @dto.Escola.NomeGestor</small>
+                    <a href="/superadmin/escolas/@dto.Escola.Id" class="btn btn-sm btn-outline-primary py-1 px-2 fw-semibold">
                         Acessar Escola →
                     </a>
                 </div>
@@ -69,11 +69,31 @@
 
 @code {
     private int totalEscolas = 0;
-    private List<Escola> escolasRecentes = new();
+    private List<EscolaDto> escolasDTO = new();
+
+    public class EscolaDto
+    {
+        public Escola Escola { get; set; } = new();
+        public int TotalAlunos { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         totalEscolas = await Db.Escolas.CountAsync();
-        escolasRecentes = await Db.Escolas.OrderByDescending(e => e.Id).Take(5).ToListAsync();
+        
+        var escolas = await Db.Escolas.OrderByDescending(e => e.Id).Take(5).ToListAsync();
+        
+        escolasDTO = new List<EscolaDto>();
+        foreach (var esc in escolas)
+        {
+            var turmasIds = await Db.Turmas.Where(t => t.EscolaId == esc.Id).Select(t => t.Id).ToListAsync();
+            var totalCriancas = await Db.Criancas.Where(c => turmasIds.Contains(c.TurmaId)).CountAsync();
+            
+            escolasDTO.Add(new EscolaDto
+            {
+                Escola = esc,
+                TotalAlunos = totalCriancas
+            });
+        }
     }
 }

@@ -62,18 +62,19 @@ else
                             @foreach (var crianca in turma.Criancas)
                             {
                                 var respPrincipal = crianca.Responsaveis.FirstOrDefault(r => r.Principal) ?? crianca.Responsaveis.FirstOrDefault();
+                                var temTemporario = crianca.Responsaveis.Any(r => r.EhTemporario);
+
                                 <div class="mobile-card d-flex align-items-center justify-content-between p-2 mb-2">
-                                    <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-2" style="max-width: 70%;">
                                         <img src="@crianca.FotoUrl" class="rounded-circle border" width="45" height="45" style="object-fit: cover;" />
                                         <div>
-                                            <strong class="d-block text-dark small">@crianca.Nome</strong>
-                                            @if (respPrincipal != null)
+                                            <strong class="d-block text-dark small text-truncate">@crianca.Nome</strong>
+                                            <small class="text-muted d-block" style="font-size: 0.72rem;">
+                                                👥 @crianca.Responsaveis.Count responsável(is)
+                                            </small>
+                                            @if (temTemporario)
                                             {
-                                                <small class="text-muted d-block" style="font-size: 0.75rem;">Resp: @respPrincipal.Nome (@respPrincipal.Parentesco)</small>
-                                            }
-                                            else
-                                            {
-                                                <small class="text-warning fw-bold d-block" style="font-size: 0.75rem;">⚠️ Sem responsável</small>
+                                                <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.65rem;">⏱️ Permissão Temporária</span>
                                             }
                                         </div>
                                     </div>
@@ -109,7 +110,7 @@ else
         }
     </div>
 
-    <!-- MODAL RESPONSÁVEIS / CONVIDAR RESPONSÁVEL -->
+    <!-- MODAL RESPONSÁVEIS COM DESTAQUE EM AMARELO PARA TEMPORÁRIOS -->
     @if (criancaSelecionada != null)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
@@ -123,33 +124,41 @@ else
                         @if (!criancaSelecionada.Responsaveis.Any())
                         {
                             <div class="alert alert-warning p-2 small mb-3">
-                                ⚠️ <strong>Atenção:</strong> NENHUM responsável vinculado ainda. Envie o convite inicial abaixo.
+                                ⚠️ <strong>Atenção:</strong> Nenhum responsável cadastrado. Envie o convite inicial.
                             </div>
                         }
                         else
                         {
                             @foreach (var resp in criancaSelecionada.Responsaveis)
                             {
-                                <div class="mobile-card d-flex align-items-center justify-content-between p-2 mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="@resp.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
-                                        <div>
-                                            <strong class="d-block small text-dark">@resp.Nome @(resp.Principal ? "⭐" : "")</strong>
-                                            <small class="text-muted d-block" style="font-size: 0.7rem;">@resp.Parentesco • CPF: @resp.Cpf</small>
+                                <div class="mobile-card p-2 mb-2 @(resp.EhTemporario ? "border-warning bg-light" : "")">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@resp.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
+                                            <div>
+                                                <strong class="d-block small text-dark">@resp.Nome @(resp.Principal ? "⭐ (Titular)" : "")</strong>
+                                                <small class="text-muted d-block" style="font-size: 0.7rem;">@resp.Parentesco • CPF: @resp.Cpf</small>
+                                            </div>
                                         </div>
+                                        <span class="badge @(resp.PodeRetirar ? "bg-success" : "bg-danger")">
+                                            @(resp.PodeRetirar ? "Pode Retirar" : "Bloqueado")
+                                        </span>
                                     </div>
-                                    <span class="badge @(resp.PodeRetirar ? "bg-success" : "bg-danger")">
-                                        @(resp.PodeRetirar ? "Pode Retirar" : "Bloqueado")
-                                    </span>
+                                    @if (resp.EhTemporario)
+                                    {
+                                        <div class="mt-2 p-1 bg-warning bg-opacity-25 rounded text-dark fw-bold text-center" style="font-size: 0.7rem;">
+                                            ⏱️ Autorização Temporária: @resp.DataInicioRetirada?.ToShortDateString() até @resp.DataFimRetirada?.ToShortDateString()
+                                        </div>
+                                    }
                                 </div>
                             }
                         }
 
                         <hr />
-                        <h6 class="fw-bold small text-dark mb-2">📧 Convidar Novo Responsável por E-mail</h6>
+                        <h6 class="fw-bold small text-dark mb-2">📧 Convidar Novo Responsável</h6>
                         <EditForm Model="novoRespConvite" OnValidSubmit="ConvidarResponsavel">
                             <div class="mb-2">
-                                <label class="form-label small">Nome do Responsável</label>
+                                <label class="form-label small">Nome Completo</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novoRespConvite.Nome" placeholder="Ex: Fernanda Silva" />
                             </div>
                             <div class="mb-2">
@@ -166,7 +175,7 @@ else
                                 </InputSelect>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold mt-2">
-                                Enviar Convite de Acesso
+                                Enviar Convite por E-mail
                             </button>
                         </EditForm>
                     </div>
@@ -178,7 +187,7 @@ else
         </div>
     }
 
-    <!-- MODAL TURMA E CRIANÇA -->
+    <!-- MODAIS CADASTRO -->
     @if (exibirModalTurma)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">

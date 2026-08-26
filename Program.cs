@@ -1,13 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using ZeloApp.Models;
 
-var builder = WebApplication.CreateBuilder(args);
+// Desativa o reloadOnChange para evitar o estouro de inotify no Render
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args
+});
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
 
 // Adiciona Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Registra Banco de Dados em Memória
+// Registra Banco em Memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
@@ -25,7 +31,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Executa o DbSeeder para carregar o Mock de dados
+// Carga do Mock de Dados
 DbSeeder.CarregarDadosIniciais(app.Services);
 
 app.Run();
