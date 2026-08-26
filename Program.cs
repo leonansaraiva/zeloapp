@@ -3,11 +3,11 @@ using ZeloApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona suporte aos componentes Blazor Server
+// Configuração Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Registra o banco em memória
+// Banco em memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
@@ -26,13 +26,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-
-
-// =========================================================================
-// CARGA INICIAL DE DADOS (MOCK)
-// Basta comentar a linha abaixo se quiser iniciar o banco totalmente vazio
-// =========================================================================
+// GARANTE QUE O BANCO DE DADOS EM MEMÓRIA É POPULADO COM O MOCK
 DbSeeder.CarregarDadosIniciais(app.Services);
-
 
 app.Run();

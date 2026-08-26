@@ -14,12 +14,12 @@
 }
 else
 {
-    <div class="container py-2">
+    <div class="container py-2 px-3">
         <!-- Header -->
         <div class="mb-3">
             <a href="/superadmin/escolas" class="btn btn-outline-secondary btn-sm mb-2">← Voltar</a>
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="fw-bold m-0 text-dark">🏫 @escola.Nome</h4>
+                <h5 class="fw-bold m-0 text-dark">🏫 @escola.Nome</h5>
                 <span class="badge bg-success">Ativa</span>
             </div>
             <small class="text-muted">CNPJ: @escola.Cnpj</small>
@@ -67,9 +67,14 @@ else
                                         <img src="@crianca.FotoUrl" class="rounded-circle border" width="45" height="45" style="object-fit: cover;" />
                                         <div>
                                             <strong class="d-block text-dark small">@crianca.Nome</strong>
-                                            <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                                Resp: @(respPrincipal != null ? respPrincipal.Nome : "Aguardando convite")
-                                            </small>
+                                            @if (respPrincipal != null)
+                                            {
+                                                <small class="text-muted d-block" style="font-size: 0.75rem;">Resp: @respPrincipal.Nome (@respPrincipal.Parentesco)</small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-warning fw-bold d-block" style="font-size: 0.75rem;">⚠️ Sem responsável</small>
+                                            }
                                         </div>
                                     </div>
                                     <button class="btn btn-sm btn-light border px-2" @onclick="() => criancaSelecionada = crianca">
@@ -92,7 +97,7 @@ else
 
             @foreach (var gestor in gestores)
             {
-                <div class="mobile-card d-flex align-items-center gap-3 p-3">
+                <div class="mobile-card d-flex align-items-center gap-3 p-3 mb-2">
                     <img src="@gestor.FotoUrl" class="rounded-circle border" width="48" height="48" style="object-fit: cover;" />
                     <div>
                         <strong class="d-block text-dark">@gestor.Nome</strong>
@@ -104,7 +109,76 @@ else
         }
     </div>
 
-    <!-- MODAIS DE CADASTRO -->
+    <!-- MODAL RESPONSÁVEIS / CONVIDAR RESPONSÁVEL -->
+    @if (criancaSelecionada != null)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white py-2">
+                        <h6 class="modal-title fw-bold">👨‍👩‍👧 Responsáveis: @criancaSelecionada.Nome</h6>
+                        <button type="button" class="btn-close btn-close-white" @onclick="() => criancaSelecionada = null"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        @if (!criancaSelecionada.Responsaveis.Any())
+                        {
+                            <div class="alert alert-warning p-2 small mb-3">
+                                ⚠️ <strong>Atenção:</strong> NENHUM responsável vinculado ainda. Envie o convite inicial abaixo.
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var resp in criancaSelecionada.Responsaveis)
+                            {
+                                <div class="mobile-card d-flex align-items-center justify-content-between p-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@resp.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
+                                        <div>
+                                            <strong class="d-block small text-dark">@resp.Nome @(resp.Principal ? "⭐" : "")</strong>
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">@resp.Parentesco • CPF: @resp.Cpf</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge @(resp.PodeRetirar ? "bg-success" : "bg-danger")">
+                                        @(resp.PodeRetirar ? "Pode Retirar" : "Bloqueado")
+                                    </span>
+                                </div>
+                            }
+                        }
+
+                        <hr />
+                        <h6 class="fw-bold small text-dark mb-2">📧 Convidar Novo Responsável por E-mail</h6>
+                        <EditForm Model="novoRespConvite" OnValidSubmit="ConvidarResponsavel">
+                            <div class="mb-2">
+                                <label class="form-label small">Nome do Responsável</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="novoRespConvite.Nome" placeholder="Ex: Fernanda Silva" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">E-mail do Responsável</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="novoRespConvite.Email" placeholder="mae@gmail.com" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Parentesco</label>
+                                <InputSelect class="form-select form-select-sm" @bind-Value="novoRespConvite.Parentesco">
+                                    <option value="Mãe">Mãe</option>
+                                    <option value="Pai">Pai</option>
+                                    <option value="Avó/Avô">Avó / Avô</option>
+                                    <option value="Tio/Tia">Tio / Tia</option>
+                                </InputSelect>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold mt-2">
+                                Enviar Convite de Acesso
+                            </button>
+                        </EditForm>
+                    </div>
+                    <div class="modal-footer p-2">
+                        <button class="btn btn-secondary btn-sm" @onclick="() => criancaSelecionada = null">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL TURMA E CRIANÇA -->
     @if (exibirModalTurma)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
@@ -118,11 +192,11 @@ else
                         <DataAnnotationsValidator />
                         <div class="modal-body p-3">
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Nome da Turma</label>
+                                <label class="form-label small">Nome da Turma</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novaTurma.Nome" placeholder="Ex: Berçário II" />
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Turno</label>
+                                <label class="form-label small">Turno</label>
                                 <InputSelect class="form-select form-select-sm" @bind-Value="novaTurma.Turno">
                                     <option value="Integral">Integral</option>
                                     <option value="Manhã">Manhã</option>
@@ -130,7 +204,7 @@ else
                                 </InputSelect>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Educadora Responsável</label>
+                                <label class="form-label small">Educadora Responsável</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novaTurma.EducadoraResponsavel" placeholder="Profª Nome" />
                             </div>
                         </div>
@@ -157,16 +231,12 @@ else
                         <DataAnnotationsValidator />
                         <div class="modal-body p-3">
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Nome da Criança</label>
+                                <label class="form-label small">Nome da Criança</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novaCrianca.Nome" placeholder="Gabriel Silva" />
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Data de Nascimento</label>
+                                <label class="form-label small">Data de Nascimento</label>
                                 <InputDate class="form-control form-control-sm" @bind-Value="novaCrianca.DataNascimento" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small font-semibold">E-mail do Responsável (Enviar Convite)</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novaCrianca.EmailResponsavelConvidado" placeholder="mae@gmail.com" />
                             </div>
                         </div>
                         <div class="modal-footer p-2">
@@ -192,15 +262,15 @@ else
                         <DataAnnotationsValidator />
                         <div class="modal-body p-3">
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Nome Completo</label>
+                                <label class="form-label small">Nome Completo</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novoGestor.Nome" placeholder="Juliana Costa" />
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">E-mail</label>
+                                <label class="form-label small">E-mail</label>
                                 <InputText class="form-control form-control-sm" @bind-Value="novoGestor.Email" placeholder="professora@escola.com" />
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small font-semibold">Cargo</label>
+                                <label class="form-label small">Cargo</label>
                                 <InputSelect class="form-select form-select-sm" @bind-Value="novoGestor.Cargo">
                                     <option value="Professora / Educadora">Professora / Educadora</option>
                                     <option value="Coordenadora Pedagógica">Coordenadora Pedagógica</option>
@@ -213,48 +283,6 @@ else
                             <button type="submit" class="btn btn-primary btn-sm">Enviar Convite</button>
                         </div>
                     </EditForm>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- MODAL RESPONSÁVEIS DA CRIANÇA -->
-    @if (criancaSelecionada != null)
-    {
-        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white py-2">
-                        <h6 class="modal-title fw-bold">👨‍👩‍👧 Responsáveis: @criancaSelecionada.Nome</h6>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => criancaSelecionada = null"></button>
-                    </div>
-                    <div class="modal-body p-2">
-                        @foreach (var resp in criancaSelecionada.Responsaveis)
-                        {
-                            <div class="mobile-card d-flex align-items-center justify-content-between p-2 mb-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <img src="@resp.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
-                                    <div>
-                                        <strong class="d-block small text-dark">@resp.Nome @(resp.Principal ? "⭐" : "")</strong>
-                                        <small class="text-muted d-block" style="font-size: 0.7rem;">@resp.Parentesco • CPF: @resp.Cpf</small>
-                                    </div>
-                                </div>
-                                <div>
-                                    @if (resp.PodeRetirar)
-                                    {
-                                        <span class="badge bg-success">Pode Retirar</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Bloqueado</span>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <div class="modal-footer p-2">
-                        <button class="btn btn-secondary btn-sm" @onclick="() => criancaSelecionada = null">Fechar</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -272,6 +300,7 @@ else
     private Turma novaTurma = new();
     private Crianca novaCrianca = new();
     private GestorEscola novoGestor = new();
+    private ConviteModel novoRespConvite = new();
 
     private bool exibirModalTurma = false;
     private bool exibirModalCrianca = false;
@@ -279,6 +308,13 @@ else
 
     private int turmaIdSelecionada = 0;
     private Crianca? criancaSelecionada;
+
+    public class ConviteModel
+    {
+        public string Nome { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Parentesco { get; set; } = "Mãe";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -333,5 +369,28 @@ else
         exibirModalGestor = false;
         novoGestor = new GestorEscola();
         await CarregarDados();
+    }
+
+    private async Task ConvidarResponsavel()
+    {
+        if (criancaSelecionada != null)
+        {
+            var resp = new Responsavel
+            {
+                CriancaId = criancaSelecionada.Id,
+                Nome = string.IsNullOrEmpty(novoRespConvite.Nome) ? "Responsável Convidado" : novoRespConvite.Nome,
+                Cpf = "Aguardando Cadastro",
+                Parentesco = novoRespConvite.Parentesco,
+                PodeRetirar = true,
+                Principal = true,
+                FotoUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"
+            };
+
+            Db.Responsaveis.Add(resp);
+            await Db.SaveChangesAsync();
+            novoRespConvite = new ConviteModel();
+            await CarregarDados();
+            criancaSelecionada = await Db.Criancas.Include(c => c.Responsaveis).FirstOrDefaultAsync(c => c.Id == criancaSelecionada.Id);
+        }
     }
 }
