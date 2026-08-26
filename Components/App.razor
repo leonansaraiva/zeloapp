@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="utf-8" />
-    <!-- AJUSTE PWA: Adicionadas regras de viewport para travamento suave e responsivo em celulares -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <base href="/" />
     
@@ -13,15 +12,11 @@
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     
-    <!-- ========================================================================= -->
-    <!-- ADICIONADO PARA PWA (Instalação como App no Smartphone)                   -->
-    <!-- ========================================================================= -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0d6efd" />
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913133.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <!-- ========================================================================= -->
 
     <HeadOutlet />
 </head>
@@ -29,18 +24,15 @@
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+    <script src="app.js"></script>
 
-    <!-- ========================================================================= -->
-    <!-- ADICIONADO PARA PWA: Script para registrar o Service Worker no navegador -->
-    <!-- ========================================================================= -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js')
-                .then(reg => console.log('PWA ZeloApp registrado com sucesso!'))
-                .catch(err => console.error('Erro ao registrar PWA:', err));
+                .then(reg => console.log('PWA ZeloApp registrado!'))
+                .catch(err => console.error('Erro PWA:', err));
         }
     </script>
-    <!-- ========================================================================= -->
 </body>
 
 </html>
