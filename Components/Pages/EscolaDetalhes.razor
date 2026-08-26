@@ -8,30 +8,32 @@
 
 @if (escola == null)
 {
-    <div class="container mt-5 text-center">
+    <div class="container mt-5 text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
     </div>
 }
 else
 {
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="container-fluid px-0 px-md-3 py-2">
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <div>
                 <a href="/superadmin/escolas" class="btn btn-outline-secondary btn-sm mb-2">← Voltar para Lista</a>
-                <h2 class="fw-bold m-0">🏫 @escola.Nome</h2>
+                <h3 class="fw-bold m-0 fs-4">🏫 @escola.Nome</h3>
                 <small class="text-muted">CNPJ: @escola.Cnpj</small>
             </div>
             <span class="badge bg-success fs-6">Ativa</span>
         </div>
 
-        <ul class="nav nav-tabs mb-4">
+        <!-- Abas com navegação fluid -->
+        <ul class="nav nav-tabs mb-3 flex-nowrap overflow-auto">
             <li class="nav-item">
-                <button class="nav-link @(abaAtiva == "turmas" ? "active fw-bold" : "")" @onclick='() => abaAtiva = "turmas"'>
+                <button class="nav-link text-nowrap @(abaAtiva == "turmas" ? "active fw-bold" : "")" @onclick='() => abaAtiva = "turmas"'>
                     👶 Turmas e Alunos (@turmas.Count)
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link @(abaAtiva == "gestores" ? "active fw-bold" : "")" @onclick='() => abaAtiva = "gestores"'>
+                <button class="nav-link text-nowrap @(abaAtiva == "gestores" ? "active fw-bold" : "")" @onclick='() => abaAtiva = "gestores"'>
                     👔 Equipe de Gestão (@gestores.Count)
                 </button>
             </li>
@@ -40,12 +42,12 @@ else
         @if (abaAtiva == "turmas")
         {
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0">Salas de Aula e Alunos</h5>
-                <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalTurma = true">+ Cadastrar Turma</button>
+                <h5 class="fw-bold m-0 fs-6">Salas de Aula e Alunos</h5>
+                <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalTurma = true">+ Nova Turma</button>
             </div>
 
             <div class="card border-0 shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-2 p-md-3">
                     @if (!turmas.Any())
                     {
                         <p class="text-muted text-center py-4 m-0">Nenhuma turma cadastrada ainda.</p>
@@ -54,67 +56,69 @@ else
                     {
                         @foreach (var turma in turmas)
                         {
-                            <div class="mb-4 p-3 border rounded">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="mb-3 p-2 p-md-3 border rounded">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
                                     <div>
-                                        <h5 class="fw-bold text-primary m-0">👶 @turma.Nome <span class="badge bg-light text-dark border ms-2">@turma.Turno</span></h5>
+                                        <h6 class="fw-bold text-primary m-0 fs-6">👶 @turma.Nome <span class="badge bg-light text-dark border ms-1">@turma.Turno</span></h6>
                                         <small class="text-muted">Educadora: <strong>@turma.EducadoraResponsavel</strong></small>
                                     </div>
-                                    <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="() => AbrirModalCrianca(turma.Id)">+ Cadastrar Criança</button>
+                                    <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="() => AbrirModalCrianca(turma.Id)">+ Criança</button>
                                 </div>
 
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Foto</th>
-                                            <th>Aluno(a)</th>
-                                            <th>Nascimento</th>
-                                            <th>Responsável Convidado / Principal</th>
-                                            <th>Autorizados</th>
-                                            <th class="text-end">Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if (!turma.Criancas.Any())
-                                        {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0 text-nowrap">
+                                        <thead class="table-light">
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted py-3">Nenhuma criança matriculada nesta turma.</td>
+                                                <th>Foto</th>
+                                                <th>Aluno(a)</th>
+                                                <th>Nascimento</th>
+                                                <th>Responsável Principal</th>
+                                                <th>Autorizados</th>
+                                                <th class="text-end">Ação</th>
                                             </tr>
-                                        }
-                                        else
-                                        {
-                                            @foreach (var crianca in turma.Criancas)
+                                        </thead>
+                                        <tbody>
+                                            @if (!turma.Criancas.Any())
                                             {
-                                                var respPrincipal = crianca.Responsaveis.FirstOrDefault(r => r.Principal) ?? crianca.Responsaveis.FirstOrDefault();
                                                 <tr>
-                                                    <td>
-                                                        <img src="@crianca.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
-                                                    </td>
-                                                    <td class="fw-bold">@crianca.Nome</td>
-                                                    <td>@crianca.DataNascimento.ToShortDateString()</td>
-                                                    <td>
-                                                        @if (respPrincipal != null)
-                                                        {
-                                                            <span>@respPrincipal.Nome (@respPrincipal.Parentesco)</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="badge bg-warning text-dark"> Convite Enviado (@crianca.EmailResponsavelConvidado)</span>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-info">@crianca.Responsaveis.Count(r => r.PodeRetirar) pessoas</span>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => criancaSelecionada = crianca">
-                                                            🔍 Ver Responsáveis
-                                                        </button>
-                                                    </td>
+                                                    <td colspan="6" class="text-center text-muted py-3">Nenhum aluno nesta turma.</td>
                                                 </tr>
                                             }
-                                        }
-                                    </tbody>
-                                </table>
+                                            else
+                                            {
+                                                @foreach (var crianca in turma.Criancas)
+                                                {
+                                                    var respPrincipal = crianca.Responsaveis.FirstOrDefault(r => r.Principal) ?? crianca.Responsaveis.FirstOrDefault();
+                                                    <tr>
+                                                        <td>
+                                                            <img src="@crianca.FotoUrl" class="rounded-circle border" width="38" height="38" style="object-fit: cover;" />
+                                                        </td>
+                                                        <td class="fw-bold">@crianca.Nome</td>
+                                                        <td>@crianca.DataNascimento.ToShortDateString()</td>
+                                                        <td>
+                                                            @if (respPrincipal != null)
+                                                            {
+                                                                <span>@respPrincipal.Nome (@respPrincipal.Parentesco)</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-warning text-dark">Convite Enviado</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-info">@crianca.Responsaveis.Count(r => r.PodeRetirar) autorizados</span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => criancaSelecionada = crianca">
+                                                                🔍 Responsáveis
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         }
                     }
@@ -124,37 +128,39 @@ else
 
         @if (abaAtiva == "gestores")
         {
-            <div class="card border-0 shadow-sm p-3">
+            <div class="card border-0 shadow-sm p-2 p-md-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold m-0">👔 Equipe de Gestão e Educadores</h5>
-                    <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalGestor = true">+ Convidar Membro (E-mail)</button>
+                    <h5 class="fw-bold m-0 fs-6">👔 Equipe de Gestão e Professores</h5>
+                    <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalGestor = true">+ Convidar Membro</button>
                 </div>
 
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Foto</th>
-                            <th>Nome</th>
-                            <th>Função</th>
-                            <th>E-mail (Chave de Convite)</th>
-                            <th>Telefone</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var gestor in gestores)
-                        {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-nowrap">
+                        <thead class="table-light">
                             <tr>
-                                <td>
-                                    <img src="@gestor.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
-                                </td>
-                                <td class="fw-bold">@gestor.Nome</td>
-                                <td><span class="badge bg-primary">@gestor.Cargo</span></td>
-                                <td>@gestor.Email</td>
-                                <td>@gestor.Telefone</td>
+                                <th>Foto</th>
+                                <th>Nome</th>
+                                <th>Função</th>
+                                <th>E-mail</th>
+                                <th>Telefone</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var gestor in gestores)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@gestor.FotoUrl" class="rounded-circle border" width="38" height="38" style="object-fit: cover;" />
+                                    </td>
+                                    <td class="fw-bold">@gestor.Nome</td>
+                                    <td><span class="badge bg-primary">@gestor.Cargo</span></td>
+                                    <td>@gestor.Email</td>
+                                    <td>@gestor.Telefone</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
     </div>
@@ -163,10 +169,10 @@ else
     @if (exibirModalTurma)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold">➕ Cadastrar Nova Turma</h5>
+                        <h5 class="modal-title fw-bold fs-6">➕ Cadastrar Nova Turma</h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalTurma = false"></button>
                     </div>
                     <EditForm Model="novaTurma" OnValidSubmit="SalvarTurma">
@@ -174,7 +180,7 @@ else
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label font-semibold">Nome da Turma</label>
-                                <InputText class="form-control" @bind-Value="novaTurma.Nome" placeholder="Ex: Berçário II ou Maternal I" />
+                                <InputText class="form-control" @bind-Value="novaTurma.Nome" placeholder="Ex: Berçário II" />
                                 <ValidationMessage For="@(() => novaTurma.Nome)" class="text-danger small" />
                             </div>
                             <div class="mb-3">
@@ -187,12 +193,12 @@ else
                             </div>
                             <div class="mb-3">
                                 <label class="form-label font-semibold">Educadora Responsável</label>
-                                <InputText class="form-control" @bind-Value="novaTurma.EducadoraResponsavel" placeholder="Profª Nome da Educadora" />
+                                <InputText class="form-control" @bind-Value="novaTurma.EducadoraResponsavel" placeholder="Profª Nome" />
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @onclick="() => exibirModalTurma = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary fw-semibold">Salvar Turma</button>
+                            <button type="submit" class="btn btn-primary fw-semibold">Salvar</button>
                         </div>
                     </EditForm>
                 </div>
@@ -200,14 +206,14 @@ else
         </div>
     }
 
-    <!-- MODAL DE CADASTRO DE CRIANÇA E CONVITE DO PAI -->
+    <!-- MODAL CADASTRO CRIANÇA -->
     @if (exibirModalCrianca)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold">👶 Cadastrar Criança e Enviar Convite aos Pais</h5>
+                        <h5 class="modal-title fw-bold fs-6">👶 Cadastrar Criança e Enviar Convite</h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalCrianca = false"></button>
                     </div>
                     <EditForm Model="novaCrianca" OnValidSubmit="SalvarCrianca">
@@ -225,14 +231,13 @@ else
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label font-semibold">E-mail do Responsável Principal (Enviar Convite)</label>
+                                <label class="form-label font-semibold">E-mail do Responsável Principal</label>
                                 <InputText class="form-control" @bind-Value="novaCrianca.EmailResponsavelConvidado" placeholder="mae@gmail.com" />
-                                <small class="text-muted">O responsável receberá um e-mail para acessar o Portal e cadastrar fotos e dados de retirada.</small>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" @onclick="() => exibirModalCrianca = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary fw-semibold">Cadastrar e Enviar Convite</button>
+                            <button type="submit" class="btn btn-primary fw-semibold">Cadastrar</button>
                         </div>
                     </EditForm>
                 </div>
@@ -240,14 +245,14 @@ else
         </div>
     }
 
-    <!-- MODAL DE CONVIDAR GESTOR/MEMBRO -->
+    <!-- MODAL GESTOR -->
     @if (exibirModalGestor)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold">📧 Convidar Membro da Equipe</h5>
+                        <h5 class="modal-title fw-bold fs-6">📧 Convidar Membro</h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalGestor = false"></button>
                     </div>
                     <EditForm Model="novoGestor" OnValidSubmit="SalvarGestor">
@@ -285,26 +290,22 @@ else
     @if (criancaSelecionada != null)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold">👨‍👩‍👧 Responsáveis de: @criancaSelecionada.Nome</h5>
+                        <h5 class="modal-title fw-bold fs-6">👨‍👩‍👧 Responsáveis de: @criancaSelecionada.Nome</h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="() => criancaSelecionada = null"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-2 p-md-3">
                         <div class="list-group">
                             @foreach (var resp in criancaSelecionada.Responsaveis)
                             {
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img src="@resp.FotoUrl" class="rounded-circle border" width="50" height="50" style="object-fit: cover;" />
+                                <div class="list-group-item d-flex flex-wrap align-items-center justify-content-between p-2 p-md-3 gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@resp.FotoUrl" class="rounded-circle border" width="45" height="45" style="object-fit: cover;" />
                                         <div>
-                                            <h6 class="mb-1 fw-bold">@resp.Nome @(resp.Principal ? "⭐ (Titular)" : "")</h6>
-                                            <p class="mb-0 text-muted small">Parentesco: <strong>@resp.Parentesco</strong> | CPF: @resp.Cpf</p>
-                                            @if (resp.EhTemporario)
-                                            {
-                                                <small class="text-warning fw-bold">⏱️ Autorização Temporária: @resp.DataInicioRetirada?.ToShortDateString() até @resp.DataFimRetirada?.ToShortDateString()</small>
-                                            }
+                                            <h6 class="mb-0 fw-bold fs-6">@resp.Nome @(resp.Principal ? "⭐" : "")</h6>
+                                            <p class="mb-0 text-muted small">@resp.Parentesco • CPF: @resp.Cpf</p>
                                         </div>
                                     </div>
                                     <div>
@@ -314,7 +315,7 @@ else
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">🚫 Retirada Bloqueada</span>
+                                            <span class="badge bg-danger">🚫 Bloqueado</span>
                                         }
                                     </div>
                                 </div>
@@ -322,7 +323,7 @@ else
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="() => criancaSelecionada = null">Fechar</button>
+                        <button class="btn btn-secondary btn-sm" @onclick="() => criancaSelecionada = null">Fechar</button>
                     </div>
                 </div>
             </div>
@@ -373,7 +374,6 @@ else
         novaTurma.EscolaId = Id;
         Db.Turmas.Add(novaTurma);
         await Db.SaveChangesAsync();
-        
         exibirModalTurma = false;
         novaTurma = new Turma();
         await CarregarDados();
@@ -390,7 +390,6 @@ else
     {
         Db.Criancas.Add(novaCrianca);
         await Db.SaveChangesAsync();
-
         exibirModalCrianca = false;
         await CarregarDados();
     }
@@ -401,7 +400,6 @@ else
         novoGestor.FotoUrl = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
         Db.Gestores.Add(novoGestor);
         await Db.SaveChangesAsync();
-
         exibirModalGestor = false;
         novoGestor = new GestorEscola();
         await CarregarDados();
