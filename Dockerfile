@@ -10,5 +10,6 @@ RUN dotnet publish "ZeloApp.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
+ENV DOTNET_UsePollForFileChanges=1
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "ZeloApp.dll"]
