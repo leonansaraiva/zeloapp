@@ -1,0 +1,45 @@
+@namespace ZeloApp.Components.Layout
+@inherits LayoutComponentBase
+
+<div class="d-flex min-vh-100 bg-light">
+    <!-- MENU LATERAL DO PAI -->
+    <div class="d-flex flex-column flex-shrink-0 p-3 bg-white border-end shadow-sm" style="width: 280px;">
+        <a href="/portal/pai" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none px-2">
+            <span class="fs-4 fw-bold text-primary">🛡️ Zelo Família</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto gap-1">
+            <li class="nav-item">
+                <a href="/portal/pai" class="nav-link active rounded-3 fw-semibold" aria-current="page">
+                    🏠 Início / Aluno
+                </a>
+            </li>
+            <li>
+                <a href="/portal/pai" class="nav-link text-dark rounded-3 fw-semibold">
+                    🛡️ Pessoas Autorizadas
+                </a>
+            </li>
+            <li>
+                <a href="/portal/pai" class="nav-link text-dark rounded-3 fw-semibold">
+                    👤 Meu Perfil
+                </a>
+            </li>
+            <li>
+                <a href="/portal/pai" class="nav-link text-dark rounded-3 fw-semibold">
+                    📢 Mural de Avisos
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="/portal/pai" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fw-semibold small">Portal Seguro</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="flex-grow-1 p-4 overflow-y-auto">
+        @Body
+    </div>
+</div>

@@ -1,33 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ZeloApp.Models;
 
-// 1. Desativa explicitamente o uso de FileSystemWatcher/inotify do .NET no nível do processo
-Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "false");
+var builder = WebApplication.CreateBuilder(args);
 
-var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions
-{
-    Args = args,
-    ContentRootPath = Directory.GetCurrentDirectory()
-});
-
-// 2. Adiciona os serviços essenciais do WebHost manualmente
-builder.WebHost.UseKestrel(options =>
-{
-    var portEnv = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-    if (int.TryParse(portEnv, out var port))
-    {
-        options.ListenAnyIP(port);
-    }
-});
-
-// 3. Adiciona configurações sem o watcher de arquivos (reloadOnChange = false)
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables();
-
-// 4. Registrar Serviços
-builder.Services.AddRouting();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -35,6 +10,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
 var app = builder.Build();
+
+// Bloco global para capturar e mostrar qualquer erro de inicialização na tela e no console
+app.UseDeveloperExceptionPage();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -48,7 +26,22 @@ app.UseAntiforgery();
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Carrega o Seed de Dados
-DbSeeder.CarregarDadosIniciais(app.Services);
+// Tenta carregar o banco de dados de forma segura com Try-Catch visível
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
+    
+    // Se você tiver o Seeder, chama aqui dentro protegido
+    DbSeeder.CarregarDadosIniciais(scope.ServiceProvider);
+    Console.WriteLine("✅ Banco de dados e Seeder carregados com sucesso!");
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine($"\n❌ ERRO CRÍTICO NA INICIALIZAÇÃO DO BANCO: {ex.Message}\n{ex.StackTrace}\n");
+    Console.ResetColor();
+}
 
 app.Run();

@@ -2,404 +2,579 @@
 @using ZeloApp.Models
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext Db
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Zelo - Detalhes da Escola</PageTitle>
-
-@if (escola == null)
-{
-    <div class="container text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
-}
-else
-{
-    <div class="container py-2 px-3">
-        <!-- Header -->
-        <div class="mb-3">
-            <a href="/superadmin/escolas" class="btn btn-outline-secondary btn-sm mb-2">← Voltar</a>
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold m-0 text-dark">🏫 @escola.Nome</h5>
-                <span class="badge bg-success">Ativa</span>
-            </div>
-            <small class="text-muted">CNPJ: @escola.Cnpj</small>
-        </div>
-
-        <!-- Abas -->
-        <div class="d-flex gap-2 mb-3">
-            <button class="btn btn-sm flex-fill @(abaAtiva == "turmas" ? "btn-primary" : "btn-light border")" @onclick='() => abaAtiva = "turmas"'>
-                👶 Turmas (@turmas.Count)
-            </button>
-            <button class="btn btn-sm flex-fill @(abaAtiva == "gestores" ? "btn-primary" : "btn-light border")" @onclick='() => abaAtiva = "gestores"'>
-                👔 Equipe (@gestores.Count)
-            </button>
-        </div>
-
-        @if (abaAtiva == "turmas")
-        {
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold m-0">Turmas e Alunos</h6>
-                <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalTurma = true">+ Turma</button>
-            </div>
-
-            @foreach (var turma in turmas)
-            {
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
-                        <div>
-                            <strong class="text-primary fs-6">👶 @turma.Nome</strong>
-                            <small class="text-muted ms-1">(@turma.Turno)</small>
-                        </div>
-                        <button class="btn btn-outline-primary btn-sm px-2 py-0" @onclick="() => AbrirModalCrianca(turma.Id)">+ Criança</button>
-                    </div>
-                    <div class="card-body p-2">
-                        @if (!turma.Criancas.Any())
-                        {
-                            <small class="text-muted d-block text-center py-2">Nenhum aluno cadastrado nesta turma.</small>
-                        }
-                        else
-                        {
-                            @foreach (var crianca in turma.Criancas)
-                            {
-                                var respPrincipal = crianca.Responsaveis.FirstOrDefault(r => r.Principal) ?? crianca.Responsaveis.FirstOrDefault();
-                                var temTemporario = crianca.Responsaveis.Any(r => r.EhTemporario);
-
-                                <div class="mobile-card d-flex align-items-center justify-content-between p-2 mb-2">
-                                    <div class="d-flex align-items-center gap-2" style="max-width: 70%;">
-                                        <img src="@crianca.FotoUrl" class="rounded-circle border" width="45" height="45" style="object-fit: cover;" />
-                                        <div>
-                                            <strong class="d-block text-dark small text-truncate">@crianca.Nome</strong>
-                                            <small class="text-muted d-block" style="font-size: 0.72rem;">
-                                                👥 @crianca.Responsaveis.Count responsável(is)
-                                            </small>
-                                            @if (temTemporario)
-                                            {
-                                                <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.65rem;">⏱️ Permissão Temporária</span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-sm btn-light border px-2" @onclick="() => criancaSelecionada = crianca">
-                                        🔍 Ver
-                                    </button>
-                                </div>
-                            }
-                        }
-                    </div>
-                </div>
-            }
-        }
-
-        @if (abaAtiva == "gestores")
-        {
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold m-0">Equipe de Gestão</h6>
-                <button class="btn btn-primary btn-sm fw-semibold" @onclick="() => exibirModalGestor = true">+ Convidar</button>
-            </div>
-
-            @foreach (var gestor in gestores)
-            {
-                <div class="mobile-card d-flex align-items-center gap-3 p-3 mb-2">
-                    <img src="@gestor.FotoUrl" class="rounded-circle border" width="48" height="48" style="object-fit: cover;" />
-                    <div>
-                        <strong class="d-block text-dark">@gestor.Nome</strong>
-                        <span class="badge bg-primary my-1">@gestor.Cargo</span>
-                        <small class="text-muted d-block">✉️ @gestor.Email</small>
-                    </div>
-                </div>
-            }
-        }
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Topo -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="/superadmin/escolas" class="btn btn-outline-secondary btn-sm rounded-3 px-3">← Voltar para Escolas</a>
+        <button class="btn btn-danger btn-sm rounded-3 px-3" @onclick="ExcluirEscola">🗑️ Excluir Escola</button>
     </div>
 
-    <!-- MODAL RESPONSÁVEIS COM DESTAQUE EM AMARELO PARA TEMPORÁRIOS -->
-    @if (criancaSelecionada != null)
+    @if (!string.IsNullOrEmpty(mensagemErro))
     {
-        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white py-2">
-                        <h6 class="modal-title fw-bold">👨‍👩‍👧 Responsáveis: @criancaSelecionada.Nome</h6>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => criancaSelecionada = null"></button>
-                    </div>
-                    <div class="modal-body p-3">
-                        @if (!criancaSelecionada.Responsaveis.Any())
-                        {
-                            <div class="alert alert-warning p-2 small mb-3">
-                                ⚠️ <strong>Atenção:</strong> Nenhum responsável cadastrado. Envie o convite inicial.
+        <div class="alert alert-danger rounded-3 p-3 small mb-4 shadow-sm">⚠️ @mensagemErro</div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensagemSucesso))
+    {
+        <div class="alert alert-success rounded-3 p-3 small mb-4 shadow-sm">✅ @mensagemSucesso</div>
+    }
+
+    @if (escola == null)
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted">Carregando informações da escola...</div>
+    }
+    else
+    {
+        <!-- Cabeçalho da Escola -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-primary border-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h3 class="fw-bold text-dark m-0">🏫 @escola.Nome</h3>
+                    <p class="text-muted small mt-1 mb-2">CNPJ: @escola.Cnpj | Gestor: <strong>@escola.NomeGestor</strong></p>
+                    <span class="badge bg-light text-dark border">Login da Diretora: <strong>@escola.LoginAdmin</strong></span>
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold mb-2 d-block" @onclick="() => exibirModalTurma = true">+ Nova Turma</button>
+                    <button class="btn btn-success btn-sm rounded-3 px-3 fw-semibold d-block" @onclick="() => exibirModalAluno = true">+ Matricular Aluno</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Turmas e Alunos -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold m-0 text-dark">🎒 Turmas e Alunos Matriculados</h5>
+                <span class="badge bg-primary rounded-pill px-3 py-2">Total na Escola: @totalAlunosGeral alunos</span>
+            </div>
+
+            @if (turmasComAlunos == null || !turmasComAlunos.Any())
+            {
+                <div class="text-muted text-center py-4 small">Nenhuma turma cadastrada nesta escola ainda. Clique em "+ Nova Turma" acima.</div>
+            }
+            else
+            {
+                @foreach (var item in turmasComAlunos)
+                {
+                    <div class="card border rounded-4 p-3 mb-3 bg-light shadow-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="fw-bold text-dark m-0">📚 @item.Turma.Nome <span class="badge bg-secondary ms-2" style="font-size: 0.7rem;">@item.Turma.Turno</span></h6>
+                                <small class="text-muted">Educadora: @item.Turma.EducadoraResponsavel</small>
                             </div>
-                        }
-                        else
+                            <span class="badge bg-primary rounded-pill">@item.AlunosComTitular.Count alunos</span>
+                        </div>
+
+                        @if (item.AlunosComTitular.Any())
                         {
-                            @foreach (var resp in criancaSelecionada.Responsaveis)
-                            {
-                                <div class="mobile-card p-2 mb-2 @(resp.EhTemporario ? "border-warning bg-light" : "")">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <img src="@resp.FotoUrl" class="rounded-circle border" width="40" height="40" style="object-fit: cover;" />
+                            <div class="list-group list-group-flush mt-2 rounded-3 overflow-hidden border">
+                                @foreach (var dto in item.AlunosComTitular)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center bg-white px-3 py-2">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="@(string.IsNullOrEmpty(dto.Crianca.FotoUrl) ? "https://images.unsplash.com/photo-1543332164-6e82f355badc?w=150&auto=format&fit=crop&q=80" : dto.Crianca.FotoUrl)" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;" />
                                             <div>
-                                                <strong class="d-block small text-dark">@resp.Nome @(resp.Principal ? "⭐ (Titular)" : "")</strong>
-                                                <small class="text-muted d-block" style="font-size: 0.7rem;">@resp.Parentesco • CPF: @resp.Cpf</small>
+                                                <span class="fw-semibold text-dark d-block">@dto.Crianca.Nome</span>
+                                                <small class="text-muted">Titular: <strong>@(dto.Titular?.Nome ?? "Não informado")</strong> • Tel: @(dto.Titular?.Telefone ?? "-")</small>
                                             </div>
                                         </div>
-                                        <span class="badge @(resp.PodeRetirar ? "bg-success" : "bg-danger")">
-                                            @(resp.PodeRetirar ? "Pode Retirar" : "Bloqueado")
-                                        </span>
+                                        <button class="btn btn-sm btn-outline-primary rounded-3 px-3" @onclick="() => VerDetalhesAluno(dto.Crianca.Id)">
+                                            Ver Ficha →
+                                        </button>
                                     </div>
-                                    @if (resp.EhTemporario)
-                                    {
-                                        <div class="mt-2 p-1 bg-warning bg-opacity-25 rounded text-dark fw-bold text-center" style="font-size: 0.7rem;">
-                                            ⏱️ Autorização Temporária: @resp.DataInicioRetirada?.ToShortDateString() até @resp.DataFimRetirada?.ToShortDateString()
-                                        </div>
-                                    }
-                                </div>
-                            }
+                                }
+                            </div>
                         }
-
-                        <hr />
-                        <h6 class="fw-bold small text-dark mb-2">📧 Convidar Novo Responsável</h6>
-                        <EditForm Model="novoRespConvite" OnValidSubmit="ConvidarResponsavel">
-                            <div class="mb-2">
-                                <label class="form-label small">Nome Completo</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novoRespConvite.Nome" placeholder="Ex: Fernanda Silva" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">E-mail do Responsável</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novoRespConvite.Email" placeholder="mae@gmail.com" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Parentesco</label>
-                                <InputSelect class="form-select form-select-sm" @bind-Value="novoRespConvite.Parentesco">
-                                    <option value="Mãe">Mãe</option>
-                                    <option value="Pai">Pai</option>
-                                    <option value="Avó/Avô">Avó / Avô</option>
-                                    <option value="Tio/Tia">Tio / Tia</option>
-                                </InputSelect>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold mt-2">
-                                Enviar Convite por E-mail
-                            </button>
-                        </EditForm>
                     </div>
-                    <div class="modal-footer p-2">
-                        <button class="btn btn-secondary btn-sm" @onclick="() => criancaSelecionada = null">Fechar</button>
-                    </div>
-                </div>
-            </div>
+                }
+            }
         </div>
     }
 
-    <!-- MODAIS CADASTRO -->
+    <!-- MODAL: CADASTRAR TURMA -->
     @if (exibirModalTurma)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white py-2">
-                        <h6 class="modal-title fw-bold">➕ Nova Turma</h6>
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-primary text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold">➕ Nova Turma</h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalTurma = false"></button>
                     </div>
-                    <EditForm Model="novaTurma" OnValidSubmit="SalvarTurma">
-                        <DataAnnotationsValidator />
-                        <div class="modal-body p-3">
-                            <div class="mb-2">
-                                <label class="form-label small">Nome da Turma</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novaTurma.Nome" placeholder="Ex: Berçário II" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Turno</label>
-                                <InputSelect class="form-select form-select-sm" @bind-Value="novaTurma.Turno">
-                                    <option value="Integral">Integral</option>
-                                    <option value="Manhã">Manhã</option>
-                                    <option value="Tarde">Tarde</option>
-                                </InputSelect>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Educadora Responsável</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novaTurma.EducadoraResponsavel" placeholder="Profª Nome" />
-                            </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nome da Turma</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaTurma.Nome" placeholder="Ex: Maternal II A" />
                         </div>
-                        <div class="modal-footer p-2">
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => exibirModalTurma = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Turno</label>
+                            <select class="form-select rounded-3" @bind="novaTurma.Turno">
+                                <option value="Matutino">Matutino</option>
+                                <option value="Vespertino">Vespertino</option>
+                                <option value="Integral">Integral</option>
+                            </select>
                         </div>
-                    </EditForm>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Educadora Responsável</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaTurma.EducadoraResponsavel" placeholder="Ex: Prof.ª Maria" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalTurma = false">Cancelar</button>
+                        <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarTurma">Salvar Turma</button>
+                    </div>
                 </div>
             </div>
         </div>
     }
 
-    @if (exibirModalCrianca)
+    <!-- MODAL: MATRICULAR ALUNO E RESPONSÁVEL -->
+    @if (exibirModalAluno)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white py-2">
-                        <h6 class="modal-title fw-bold">👶 Cadastrar Criança</h6>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalCrianca = false"></button>
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-success text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold">👶 Matricular Aluno & Responsável</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalAluno = false"></button>
                     </div>
-                    <EditForm Model="novaCrianca" OnValidSubmit="SalvarCrianca">
-                        <DataAnnotationsValidator />
-                        <div class="modal-body p-3">
-                            <div class="mb-2">
-                                <label class="form-label small">Nome da Criança</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novaCrianca.Nome" placeholder="Gabriel Silva" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Data de Nascimento</label>
-                                <InputDate class="form-control form-control-sm" @bind-Value="novaCrianca.DataNascimento" />
-                            </div>
+                    <div class="modal-body p-4">
+                        <h6 class="fw-bold text-primary mb-3">1. Dados da Criança</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nome Completo do Aluno</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoAluno.Nome" placeholder="Ex: Lucas Gabriel" />
                         </div>
-                        <div class="modal-footer p-2">
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => exibirModalCrianca = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary btn-sm">Cadastrar</button>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Data de Nascimento (Senha do Portal)</label>
+                            <input type="date" class="form-control rounded-3" @bind="novoAluno.DataNascimento" />
                         </div>
-                    </EditForm>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Selecione a Turma</label>
+                            <select class="form-select rounded-3" @bind="turmaSelecionadaId">
+                                <option value="0">Selecione...</option>
+                                @foreach (var t in turmasDisponiveis)
+                                {
+                                    <option value="@t.Id">@t.Nome (@t.Turno)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <h6 class="fw-bold text-success mb-3">2. Responsável Titular (Contrato)</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Nome do Responsável</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoResponsavel.Nome" placeholder="Ex: Carlos Silva" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">CPF (Login no Portal do Pai)</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoResponsavel.Cpf" placeholder="000.000.000-00" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Telefone / WhatsApp</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoResponsavel.Telefone" placeholder="(41) 99999-9999" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalAluno = false">Cancelar</button>
+                        <button type="button" class="btn btn-success rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarMatricula">Concluir Matrícula</button>
+                    </div>
                 </div>
             </div>
         </div>
     }
 
-    @if (exibirModalGestor)
+    <!-- MODAL: FICHA DO ALUNO & EDIÇÃO EM COLUNA ÚNICA (SEM ESPAÇOS VAZIOS) -->
+    @if (exibirModalDetalhes && alunoSelecionado != null)
     {
         <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white py-2">
-                        <h6 class="modal-title fw-bold">📧 Convidar Membro</h6>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalGestor = false"></button>
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-primary text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold">📋 Ficha do Aluno</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalDetalhes = false"></button>
                     </div>
-                    <EditForm Model="novoGestor" OnValidSubmit="SalvarGestor">
-                        <DataAnnotationsValidator />
-                        <div class="modal-body p-3">
-                            <div class="mb-2">
-                                <label class="form-label small">Nome Completo</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novoGestor.Nome" placeholder="Juliana Costa" />
+                    <div class="modal-body p-4">
+                        <!-- Cabeçalho da Criança -->
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@alunoSelecionado.FotoUrl" class="rounded-circle shadow-sm" style="width: 60px; height: 60px; object-fit: cover;" />
+                                <div>
+                                    <h4 class="fw-bold text-dark m-0">@alunoSelecionado.Nome</h4>
+                                    <small class="text-muted">Nascimento: @alunoSelecionado.DataNascimento.ToShortDateString() • Senha Portal: <strong>@alunoSelecionado.DataNascimento.ToString("ddMMyyyy")</strong></small>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">E-mail</label>
-                                <InputText class="form-control form-control-sm" @bind-Value="novoGestor.Email" placeholder="professora@escola.com" />
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Cargo</label>
-                                <InputSelect class="form-select form-select-sm" @bind-Value="novoGestor.Cargo">
-                                    <option value="Professora / Educadora">Professora / Educadora</option>
-                                    <option value="Coordenadora Pedagógica">Coordenadora Pedagógica</option>
-                                    <option value="Diretora">Diretora</option>
-                                </InputSelect>
-                            </div>
+                            <button class="btn btn-outline-primary btn-sm rounded-3 px-3 fw-semibold" @onclick="() => modoEdicaoCrianca = !modoEdicaoCrianca">
+                                @(modoEdicaoCrianca ? "🔒 Fechar Edição" : "✏️ Editar Criança")
+                            </button>
                         </div>
-                        <div class="modal-footer p-2">
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => exibirModalGestor = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary btn-sm">Enviar Convite</button>
+
+                        <!-- Edição da Criança -->
+                        @if (modoEdicaoCrianca)
+                        {
+                            <div class="card border border-primary rounded-4 p-3 mb-4 bg-white shadow-sm">
+                                <h6 class="fw-bold text-primary mb-3">Editando Dados da Criança</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Nome da Criança</label>
+                                        <input type="text" class="form-control rounded-3 form-control-sm" @bind="alunoSelecionado.Nome" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Data de Nascimento</label>
+                                        <input type="date" class="form-control rounded-3 form-control-sm" @bind="alunoSelecionado.DataNascimento" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Turma</label>
+                                        <select class="form-select rounded-3 form-select-sm" @bind="alunoSelecionado.TurmaId">
+                                            @foreach (var t in turmasDisponiveis)
+                                            {
+                                                <option value="@t.Id">@t.Nome (@t.Turno)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Link da Foto (URL)</label>
+                                        <input type="text" class="form-control rounded-3 form-control-sm" @bind="alunoSelecionado.FotoUrl" />
+                                    </div>
+                                    <div class="col-12 text-end mt-2">
+                                        <button class="btn btn-sm btn-success rounded-3 px-4 fw-semibold" @onclick="SalvarAlteracoesCrianca">Salvar Criança</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Lista de Pessoas (Titular e Autorizados) em Coluna Única -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark m-0">🛡️ Responsáveis e Pessoas Autorizadas</h6>
+                            <small class="text-muted">Clique em "Editar" para alterar dados ou bloquear/liberar.</small>
                         </div>
-                    </EditForm>
+
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var resp in responsaveisDoAluno)
+                            {
+                                <div class="card border rounded-4 p-3 @(resp.PodeRetirar ? "bg-white border-success border-2" : "bg-danger bg-opacity-10 border-danger border-2") shadow-none">
+                                    
+                                    <!-- Modo Visualização -->
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="@(string.IsNullOrEmpty(resp.FotoUrl) ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" : resp.FotoUrl)" class="rounded-circle shadow-sm" style="width: 45px; height: 45px; object-fit: cover;" />
+                                            <div>
+                                                <h6 class="fw-bold text-dark m-0">@resp.Nome</h6>
+                                                <small class="text-muted d-block">CPF: @resp.Cpf • Tel: @resp.Telefone • Parentesco: <strong>@resp.Parentesco</strong></small>
+                                                <span class="badge @(resp.Principal ? "bg-primary" : "bg-secondary") rounded-pill mt-1" style="font-size: 0.65rem;">
+                                                    @(resp.Principal ? "Titular do Contrato" : "Familiar Autorizado")
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            @if (idResponsavelEmEdicao != resp.Id)
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary rounded-3 px-3 py-1 fw-semibold" @onclick="() => AbrirEdicaoResponsavel(resp)">
+                                                    ✏️ Editar & Status
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-secondary rounded-3 px-3 py-1 fw-semibold" @onclick="() => idResponsavelEmEdicao = 0">
+                                                    🔒 Fechar
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Formulário de Edição Isolado (Abre embaixo do próprio card ocupando toda a largura) -->
+                                    @if (idResponsavelEmEdicao == resp.Id && responsavelEmEdicao != null)
+                                    {
+                                        <div class="bg-light p-3 rounded-3 border mt-3 shadow-sm">
+                                            <h6 class="fw-bold text-primary small mb-3">Editando: @resp.Nome</h6>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Nome</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3" @bind="responsavelEmEdicao.Nome" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">CPF</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3" @bind="responsavelEmEdicao.Cpf" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Telefone</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3" @bind="responsavelEmEdicao.Telefone" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Parentesco</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3" @bind="responsavelEmEdicao.Parentesco" />
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label small fw-bold">Foto (URL)</label>
+                                                    <input type="text" class="form-control form-control-sm rounded-3" @bind="responsavelEmEdicao.FotoUrl" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Status de Retirada dentro da edição -->
+                                            <div class="mb-3 p-2 bg-white rounded-3 border d-flex justify-content-between align-items-center">
+                                                <span class="small fw-bold text-dark">Status de Retirada:</span>
+                                                <button type="button" class="btn btn-sm @(responsavelEmEdicao.PodeRetirar ? "btn-success" : "btn-danger") rounded-3 px-3 py-1 fw-semibold" @onclick="() => responsavelEmEdicao.PodeRetirar = !responsavelEmEdicao.PodeRetirar">
+                                                    @(responsavelEmEdicao.PodeRetirar ? "🟢 Liberado" : "🔴 Bloqueado") (Clique para alternar)
+                                                </button>
+                                            </div>
+
+                                            <div class="d-flex gap-2 justify-content-end">
+                                                <button class="btn btn-sm btn-secondary rounded-3 px-3" @onclick="() => idResponsavelEmEdicao = 0">Cancelar</button>
+                                                <button class="btn btn-sm btn-success rounded-3 px-4 fw-semibold" @onclick="SalvarResponsavel">Salvar Alterações</button>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Status fixo na parte inferior (se não estiver editando) -->
+                                    @if (idResponsavelEmEdicao != resp.Id)
+                                    {
+                                        <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                                            <span class="small fw-bold @(resp.PodeRetirar ? "text-success" : "text-danger")">
+                                                @(resp.PodeRetirar ? "🟢 Liberado para Retirada" : "🔴 Acesso Bloqueado")
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 pt-0">
+                        <button type="button" class="btn btn-secondary rounded-3 px-4 btn-sm" @onclick="() => exibirModalDetalhes = false">Fechar Ficha</button>
+                    </div>
                 </div>
             </div>
         </div>
     }
-}
+</div>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter]
+    public int Id { get; set; }
 
     private Escola? escola;
-    private List<Turma> turmas = new();
-    private List<GestorEscola> gestores = new();
-    private string abaAtiva = "turmas";
-
-    private Turma novaTurma = new();
-    private Crianca novaCrianca = new();
-    private GestorEscola novoGestor = new();
-    private ConviteModel novoRespConvite = new();
+    private List<TurmaComAlunosDto> turmasComAlunos = new();
+    private List<Turma> turmasDisponiveis = new();
+    private int totalAlunosGeral = 0;
+    
+    private string? mensagemErro;
+    private string? mensagemSucesso;
 
     private bool exibirModalTurma = false;
-    private bool exibirModalCrianca = false;
-    private bool exibirModalGestor = false;
+    private bool exibirModalAluno = false;
+    private bool exibirModalDetalhes = false;
+    private bool modoEdicaoCrianca = false;
 
-    private int turmaIdSelecionada = 0;
-    private Crianca? criancaSelecionada;
+    private Turma novaTurma = new();
+    private Crianca novoAluno = new() { DataNascimento = DateTime.Today.AddYears(-3) };
+    private Responsavel novoResponsavel = new();
+    private int turmaSelecionadaId = 0;
 
-    public class ConviteModel
+    private Crianca? alunoSelecionado;
+    private List<Responsavel> responsaveisDoAluno = new();
+    
+    private int idResponsavelEmEdicao = 0;
+    private Responsavel? responsavelEmEdicao;
+
+    public class AlunoComTitularDto
     {
-        public string Nome { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Parentesco { get; set; } = "Mãe";
+        public Crianca Crianca { get; set; } = new();
+        public Responsavel? Titular { get; set; }
+    }
+
+    public class TurmaComAlunosDto
+    {
+        public Turma Turma { get; set; } = new();
+        public List<AlunoComTitularDto> AlunosComTitular { get; set; } = new();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await CarregarDados();
+        await CarregarDadosEscola();
     }
 
-    private async Task CarregarDados()
+    private async Task CarregarDadosEscola()
     {
-        escola = await Db.Escolas.FirstOrDefaultAsync(e => e.Id == Id);
-        if (escola != null)
+        try
         {
-            gestores = await Db.Gestores.Where(g => g.EscolaId == Id).ToListAsync();
-            turmas = await Db.Turmas
-                .Include(t => t.Criancas)
-                .ThenInclude(c => c.Responsaveis)
-                .Where(t => t.EscolaId == Id)
-                .ToListAsync();
+            escola = await Db.Escolas.FirstOrDefaultAsync(e => e.Id == Id);
+            if (escola != null)
+            {
+                turmasDisponiveis = await Db.Turmas.Where(t => t.EscolaId == escola.Id).ToListAsync();
+                turmasComAlunos = new List<TurmaComAlunosDto>();
+                totalAlunosGeral = 0;
+
+                foreach (var turma in turmasDisponiveis)
+                {
+                    var criancas = await Db.Criancas.Where(c => c.TurmaId == turma.Id).ToListAsync();
+                    totalAlunosGeral += criancas.Count;
+
+                    var listaDto = new List<AlunoComTitularDto>();
+                    foreach (var c in criancas)
+                    {
+                        var titular = await Db.Responsaveis.FirstOrDefaultAsync(r => r.CriancaId == c.Id && r.Principal);
+                        listaDto.Add(new AlunoComTitularDto { Crianca = c, Titular = titular });
+                    }
+
+                    turmasComAlunos.Add(new TurmaComAlunosDto
+                    {
+                        Turma = turma,
+                        AlunosComTitular = listaDto
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao carregar dados: {ex.Message}";
         }
     }
 
     private async Task SalvarTurma()
     {
-        novaTurma.EscolaId = Id;
-        Db.Turmas.Add(novaTurma);
-        await Db.SaveChangesAsync();
-        exibirModalTurma = false;
-        novaTurma = new Turma();
-        await CarregarDados();
-    }
-
-    private void AbrirModalCrianca(int turmaId)
-    {
-        turmaIdSelecionada = turmaId;
-        novaCrianca = new Crianca { TurmaId = turmaId, FotoUrl = "https://images.unsplash.com/photo-1543332164-6e82f355badc?w=150&auto=format&fit=crop&q=80" };
-        exibirModalCrianca = true;
-    }
-
-    private async Task SalvarCrianca()
-    {
-        Db.Criancas.Add(novaCrianca);
-        await Db.SaveChangesAsync();
-        exibirModalCrianca = false;
-        await CarregarDados();
-    }
-
-    private async Task SalvarGestor()
-    {
-        novoGestor.EscolaId = Id;
-        novoGestor.FotoUrl = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
-        Db.Gestores.Add(novoGestor);
-        await Db.SaveChangesAsync();
-        exibirModalGestor = false;
-        novoGestor = new GestorEscola();
-        await CarregarDados();
-    }
-
-    private async Task ConvidarResponsavel()
-    {
-        if (criancaSelecionada != null)
+        try
         {
-            var resp = new Responsavel
+            if (string.IsNullOrWhiteSpace(novaTurma.Nome))
             {
-                CriancaId = criancaSelecionada.Id,
-                Nome = string.IsNullOrEmpty(novoRespConvite.Nome) ? "Responsável Convidado" : novoRespConvite.Nome,
-                Cpf = "Aguardando Cadastro",
-                Parentesco = novoRespConvite.Parentesco,
-                PodeRetirar = true,
-                Principal = true,
-                FotoUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"
-            };
+                mensagemErro = "Informe o nome da turma.";
+                return;
+            }
 
-            Db.Responsaveis.Add(resp);
+            novaTurma.EscolaId = Id;
+            Db.Turmas.Add(novaTurma);
             await Db.SaveChangesAsync();
-            novoRespConvite = new ConviteModel();
-            await CarregarDados();
-            criancaSelecionada = await Db.Criancas.Include(c => c.Responsaveis).FirstOrDefaultAsync(c => c.Id == criancaSelecionada.Id);
+
+            exibirModalTurma = false;
+            novaTurma = new Turma();
+            mensagemSucesso = "Turma cadastrada com sucesso!";
+            await CarregarDadosEscola();
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao salvar turma: {ex.Message}";
+        }
+    }
+
+    private async Task SalvarMatricula()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(novoAluno.Nome) || turmaSelecionadaId == 0)
+            {
+                mensagemErro = "Preencha o nome do aluno e selecione a turma.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(novoResponsavel.Nome) || string.IsNullOrWhiteSpace(novoResponsavel.Cpf))
+            {
+                mensagemErro = "Preencha os dados do responsável titular.";
+                return;
+            }
+
+            novoAluno.TurmaId = turmaSelecionadaId;
+            novoAluno.FotoUrl = "https://images.unsplash.com/photo-1543332164-6e82f355badc?w=150&auto=format&fit=crop&q=80";
+            Db.Criancas.Add(novoAluno);
+            await Db.SaveChangesAsync();
+
+            novoResponsavel.CriancaId = novoAluno.Id;
+            novoResponsavel.Principal = true;
+            novoResponsavel.PodeRetirar = true;
+            novoResponsavel.Parentesco = "Pai/Mãe (Titular do Contrato)";
+            novoResponsavel.FotoUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80";
+            Db.Responsaveis.Add(novoResponsavel);
+            await Db.SaveChangesAsync();
+
+            exibirModalAluno = false;
+            novoAluno = new Crianca { DataNascimento = DateTime.Today.AddYears(-3) };
+            novoResponsavel = new Responsavel();
+            turmaSelecionadaId = 0;
+            mensagemSucesso = "Aluno matriculado com sucesso!";
+            await CarregarDadosEscola();
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao matricular: {ex.Message}";
+        }
+    }
+
+    private async Task VerDetalhesAluno(int alunoId)
+    {
+        try
+        {
+            alunoSelecionado = await Db.Criancas.FirstOrDefaultAsync(c => c.Id == alunoId);
+            responsaveisDoAluno = await Db.Responsaveis.Where(r => r.CriancaId == alunoId).ToListAsync();
+            modoEdicaoCrianca = false;
+            idResponsavelEmEdicao = 0;
+            responsavelEmEdicao = null;
+            exibirModalDetalhes = true;
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao carregar detalhes do aluno: {ex.Message}";
+        }
+    }
+
+    private async Task SalvarAlteracoesCrianca()
+    {
+        try
+        {
+            if (alunoSelecionado != null)
+            {
+                Db.Criancas.Update(alunoSelecionado);
+                await Db.SaveChangesAsync();
+                modoEdicaoCrianca = false;
+                mensagemSucesso = "Dados da criança atualizados com sucesso!";
+                await CarregarDadosEscola();
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao atualizar criança: {ex.Message}";
+        }
+    }
+
+    private void AbrirEdicaoResponsavel(Responsavel resp)
+    {
+        idResponsavelEmEdicao = resp.Id;
+        responsavelEmEdicao = resp;
+    }
+
+    private async Task SalvarResponsavel()
+    {
+        try
+        {
+            if (responsavelEmEdicao != null)
+            {
+                Db.Responsaveis.Update(responsavelEmEdicao);
+                await Db.SaveChangesAsync();
+                idResponsavelEmEdicao = 0;
+                responsavelEmEdicao = null;
+                mensagemSucesso = "Dados e status atualizados com sucesso!";
+                await CarregarDadosEscola();
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao atualizar responsável: {ex.Message}";
+        }
+    }
+
+    private async Task ExcluirEscola()
+    {
+        try
+        {
+            if (escola != null)
+            {
+                Db.Escolas.Remove(escola);
+                await Db.SaveChangesAsync();
+                Navigation.NavigateTo("/superadmin/escolas");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao excluir: {ex.Message}";
         }
     }
 }

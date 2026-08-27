@@ -1,0 +1,132 @@
+@page "/superadmin/escolas"
+@using ZeloApp.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@inject AppDbContext Db
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Zelo - Gestão de Escolas</PageTitle>
+
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Cabeçalho Estilo App -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-4 bg-primary text-white rounded-4 shadow-sm">
+        <div>
+            <h3 class="fw-bold m-0">🏫 Escolas Cadastradas</h3>
+            <p class="small m-0 opacity-75">Gerencie as instituições parceiras do sistema.</p>
+        </div>
+        <button class="btn btn-light text-primary rounded-3 px-3 py-2 fw-semibold shadow-sm" @onclick="() => exibirModal = true">+ Nova Escola</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+        <div class="alert alert-danger rounded-3 p-3 small mb-4 shadow-sm">⚠️ @mensagemErro</div>
+    }
+
+    @if (escolas == null || !escolas.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted bg-white">Nenhuma escola cadastrada no momento.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var esc in escolas)
+            {
+                <div class="col-12 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold text-dark m-0">@esc.Nome</h5>
+                            <span class="badge bg-success rounded-pill">Ativa</span>
+                        </div>
+                        <small class="text-muted d-block mb-1">CNPJ: @esc.Cnpj</small>
+                        <small class="text-muted d-block mb-3">Gestor: @esc.NomeGestor</small>
+                        <div class="mt-auto pt-2 border-top text-end">
+                            <a href="/superadmin/escolas/@esc.Id" class="btn btn-sm btn-outline-primary rounded-3 px-3 fw-semibold">Gerenciar Escola →</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- MODAL NOVA ESCOLA -->
+    @if (exibirModal)
+    {
+        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header bg-primary text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold">➕ Cadastrar Nova Escola</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModal = false"></button>
+                    </div>
+                    <EditForm Model="novaEscola" OnValidSubmit="SalvarEscola">
+                        <DataAnnotationsValidator />
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Nome da Escola</label>
+                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.Nome" placeholder="Ex: Escola Alvorada" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">CNPJ</label>
+                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.Cnpj" placeholder="00.000.000/0001-00" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">Nome do Gestor</label>
+                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.NomeGestor" placeholder="Ex: Diretor João" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary">E-mail do Gestor</label>
+                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.EmailGestor" placeholder="joao@escola.com" />
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-3 pt-0">
+                            <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModal = false">Cancelar</button>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold">Salvar Escola</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Escola> escolas = new();
+    private Escola novaEscola = new();
+    private bool exibirModal = false;
+    private string? mensagemErro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarEscolas();
+    }
+
+    private async Task CarregarEscolas()
+    {
+        try
+        {
+            escolas = await Db.Escolas.OrderByDescending(e => e.Id).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao carregar escolas: {ex.Message}";
+        }
+    }
+
+    private async Task SalvarEscola()
+    {
+        try
+        {
+            Db.Escolas.Add(novaEscola);
+            await Db.SaveChangesAsync();
+            exibirModal = false;
+            novaEscola = new Escola();
+            await CarregarEscolas();
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao salvar: {ex.Message}";
+        }
+    }
+}

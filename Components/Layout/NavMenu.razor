@@ -1,79 +1,42 @@
-﻿@rendermode InteractiveServer
-
-<!-- Header Mobile -->
-<div class="top-row px-3 bg-primary text-white d-flex d-md-none justify-content-between align-items-center shadow-sm" style="height: 56px;">
-    <a class="navbar-brand fw-bold text-white fs-5 m-0" href="">🛡️ ZeloApp</a>
-    <button class="btn text-white fs-4 p-0 border-0" @onclick="ToggleNav">
-        @(menuAberto ? "✕" : "☰")
-    </button>
-</div>
-
-<!-- Menu Overlay para Telas Pequenas (Mobile) -->
-@if (menuAberto)
-{
-    <div class="mobile-nav-overlay d-md-none" @onclick="FecharNav">
-        <div class="text-white-50 small fw-bold mb-2">SUPER ADMIN</div>
-        <a href="" class="btn btn-outline-light text-start mb-2 py-2 fw-semibold">
-            🏠 Painel Geral
-        </a>
-        <a href="superadmin/escolas" class="btn btn-outline-light text-start mb-3 py-2 fw-semibold">
-            🏫 Gestão de Escolas
-        </a>
-
-        <hr class="border-secondary my-2" />
-
-        <div class="text-white-50 small fw-bold mb-2">PORTAL DA FAMÍLIA</div>
-        <a href="portal/pai" class="btn btn-primary text-start py-2 fw-semibold mb-4">
-            📱 Visão do Pai / Mãe
-        </a>
-
-        <hr class="border-secondary my-2" />
-
-        <!-- Opção de Instalação dentro do Menu -->
-        <button class="btn btn-success text-start py-2 fw-bold w-100 mt-2" onclick="instalarPWA()">
-            📲 Instalar Aplicativo no Celular
+﻿<div class="top-row ps-3 navbar navbar-dark bg-primary shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="">🛡️ ZeloApp</a>
+        <!-- Botão hambúrguer que só aparece no celular -->
+        <button title="Navigation menu" class="navbar-toggler border-0 shadow-none d-md-none" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
         </button>
     </div>
-}
-
-<!-- Menu Lateral Fixo para Telas Grandes (Desktop/Web) -->
-<div class="d-none d-md-block bg-dark text-white p-3 h-100 min-vh-100">
-    <div class="navbar-brand fw-bold text-white fs-4 mb-4 d-block">🛡️ ZeloApp</div>
-
-    <div class="text-white-50 small fw-bold mb-2">SUPER ADMIN</div>
-    <div class="nav flex-column mb-4">
-        <NavLink class="nav-link text-white-50 py-2 fs-6" href="" Match="NavLinkMatch.All">
-            🏠 Painel Geral
-        </NavLink>
-        <NavLink class="nav-link text-white-50 py-2 fs-6" href="superadmin/escolas">
-            🏫 Gestão de Escolas
-        </NavLink>
-    </div>
-
-    <hr class="border-secondary my-3" />
-
-    <div class="text-white-50 small fw-bold mb-2">PORTAL DA FAMÍLIA</div>
-    <div class="nav flex-column mb-4">
-        <NavLink class="nav-link text-white-50 py-2 fs-6" href="portal/pai">
-            📱 Visão do Pai / Mãe
-        </NavLink>
-    </div>
-
-    <button class="btn btn-outline-success btn-sm w-100 fw-bold mt-3" onclick="instalarPWA()">
-        📲 Instalar ZeloApp
-    </button>
 </div>
 
-<!-- Botão Flutuante de Instalação do PWA (Sempre disponível no canto) -->
-<div id="pwa-install-btn" style="display: block;">
-    <button class="pwa-float-btn" onclick="instalarPWA()">
-        📲 Instalar App
-    </button>
+<!-- Menu lateral: visível direto no PC (d-md-block) e controlado por clique no celular -->
+<div class="@NavMenuCssClass nav-scrollable bg-white border-end shadow-sm" style="min-height: calc(100vh - 3.5rem);">
+    <nav class="flex-column p-3">
+        <div class="nav-item px-2 mb-2">
+            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="" Match="NavLinkMatch.All">
+                🏠 Painel Geral
+            </NavLink>
+        </div>
+        <div class="nav-item px-2 mb-2">
+            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="/superadmin/escolas">
+                🏫 Gestão de Escolas
+            </NavLink>
+        </div>
+        <div class="nav-item px-2 mb-2">
+            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="/portal/pai">
+                📱 Portal da Família
+            </NavLink>
+        </div>
+    </nav>
 </div>
 
 @code {
-    private bool menuAberto = false;
+    private bool collapseNavMenu = true;
+    
+    // Garante que no computador (md para cima) o menu fica sempre aberto, e no celular alterna
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse d-md-block" : "show";
 
-    private void ToggleNav() => menuAberto = !menuAberto;
-    private void FecharNav() => menuAberto = false;
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
 }
