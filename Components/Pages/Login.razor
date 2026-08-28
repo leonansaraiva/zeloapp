@@ -1,0 +1,130 @@
+@page "/"
+@layout LoginLayout
+@using ZeloApp.Models
+@using ZeloApp.Services
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@inject AuthStateService Auth
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Zelo - Login Unificado</PageTitle>
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="width: 100%; max-width: 420px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-primary">🛡️ Zelo Educação</h3>
+            <p class="small text-muted">Acesse com sua credencial de acesso.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(mensagemErro))
+        {
+            <div class="alert alert-danger rounded-3 p-3 small mb-3">⚠️ @mensagemErro</div>
+        }
+
+        <!-- Envolvido em <form> com @onsubmit para o ENTER funcionar perfeitamente -->
+        <form @onsubmit="TentarEntrar" @onsubmit:preventDefault="true">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Usuário ou CPF</label>
+                <input type="text" class="form-control rounded-3" @bind="usuarioInput" placeholder="Ex: admin, diretora ou CPF" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-secondary">Senha / Data de Nascimento</label>
+                <input type="password" class="form-control rounded-3" @bind="senhaInput" placeholder="Senha ou DDMMAAAA" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold shadow-sm mb-3">
+                Entrar no Sistema →
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- CARD FLUTUANTE DE AJUDA PARA TESTES RÁPIDOS -->
+<div class="position-fixed bottom-0 end-0 p-3 d-none d-lg-block" style="z-index: 1050; width: 320px;">
+    <div class="card border-0 shadow-lg rounded-4 p-3 bg-white border-start border-warning border-4">
+        <h6 class="fw-bold text-dark mb-2" style="font-size: 0.85rem;">⚡ Credenciais para Teste</h6>
+        <ul class="list-unstyled small text-muted mb-0" style="font-size: 0.75rem;">
+            <li class="mb-1"><strong>Super Admin:</strong> <span class="text-dark">admin</span> / <span class="text-dark">admin</span></li>
+            <li class="mb-1"><strong>Diretora (Escola):</strong> <span class="text-dark">diretora</span> / <span class="text-dark">diretora</span></li>
+            <li><strong>Pai / Responsável:</strong> CPF <span class="text-dark">11111111111</span> / Senha <span class="text-dark">01012020</span></li>
+        </ul>
+    </div>
+</div>
+
+@code {
+    private string usuarioInput = string.Empty;
+    private string senhaInput = string.Empty;
+    private string mensagemErro = string.Empty;
+
+    private async Task TentarEntrar()
+    {
+        mensagemErro = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(usuarioInput) || string.IsNullOrWhiteSpace(senhaInput))
+        {
+            mensagemErro = "Preencha todos os campos.";
+            return;
+        }
+
+        // 1. Super Admin de Teste
+        if (usuarioInput.Trim().ToLower() == "admin" && senhaInput.Trim() == "admin")
+        {
+            Auth.FazerLoginAdminMaster("Super Admin Master");
+            Navigation.NavigateTo("/superadmin/escolas");
+            return;
+        }
+
+        // 2. Diretora de Escola de Teste
+        if (usuarioInput.Trim().ToLower() == "diretora" && senhaInput.Trim() == "diretora")
+        {
+            var escolaExemplo = await Db.Escolas.FirstOrDefaultAsync();
+            int escolaId = escolaExemplo?.Id ?? 1;
+            string nomeEscola = escolaExemplo?.Nome ?? "Escola Exemplo";
+            
+            Auth.FazerLoginDiretora(escolaId, nomeEscola, "Diretora Padrão");
+            Navigation.NavigateTo($"/escola/gerenciar/{escolaId}");
+            return;
+        }
+
+        // 3. Responsável (Pai/Mãe) de Teste
+        if (usuarioInput.Trim().Replace(".", "").Replace("-", "") == "11111111111")
+        {
+            var respExemplo = await Db.Responsaveis.FirstOrDefaultAsync(r => r.Principal);
+            if (respExemplo != null)
+            {
+                Auth.FazerLoginPai(respExemplo.Id, respExemplo.Nome);
+                Navigation.NavigateTo("/portal/pai");
+                return;
+            }
+        }
+
+        // 4. Validação real no Banco de Dados caso digite outras credenciais cadastradas
+        var escolaDb = await Db.Escolas.FirstOrDefaultAsync(e => e.LoginAdmin == usuarioInput && e.SenhaAdmin == senhaInput);
+        if (escolaDb != null)
+        {
+            Auth.FazerLoginDiretora(escolaDb.Id, escolaDb.Nome, escolaDb.NomeGestor);
+            Navigation.NavigateTo($"/escola/gerenciar/{escolaDb.Id}");
+            return;
+        }
+
+        var cpfLimpo = usuarioInput.Replace(".", "").Replace("-", "").Trim();
+        var responsavelDb = await Db.Responsaveis
+            .Include(r => r.Crianca)
+            .FirstOrDefaultAsync(r => r.Cpf.Replace(".", "").Replace("-", "") == cpfLimpo && r.Principal);
+
+        if (responsavelDb != null && responsavelDb.Crianca != null)
+        {
+            string senhaNasc = responsavelDb.Crianca.DataNascimento.ToString("ddMMyyyy");
+            if (senhaInput.Trim() == senhaNasc)
+            {
+                Auth.FazerLoginPai(responsavelDb.Id, responsavelDb.Nome);
+                Navigation.NavigateTo("/portal/pai");
+                return;
+            }
+        }
+
+        mensagemErro = "Usuário, CPF ou senha inválidos.";
+    }
+}

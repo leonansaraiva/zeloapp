@@ -1,0 +1,459 @@
+@page "/escola/turma/{TurmaId:int}"
+@using ZeloApp.Models
+@using ZeloApp.Services
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@inject NavigationManager Navigation
+@inject AuthStateService Auth
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<div class="container-fluid">
+    <!-- CABEÇALHO DA TURMA -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <button class="btn btn-outline-secondary btn-sm rounded-3 mb-2" @onclick="VoltarPainelEscola">← Voltar para a Unidade</button>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold text-dark m-0">📁 Turma: @turma.Nome</h2>
+                <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1">Turno: @turma.Turno</span>
+            </div>
+            <p class="text-muted small m-0 mt-1">👩‍🏫 Professora Responsável: <strong class="text-dark">@(string.IsNullOrEmpty(turma.ProfessorResponsavel) ? "Não definida" : turma.ProfessorResponsavel)</strong></p>
+        </div>
+        <div>
+            <button class="btn btn-primary rounded-3 px-3 fw-semibold shadow-sm" @onclick="AbrirModalNovoAluno">
+                + Matricular Aluno na Turma
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagemSucesso))
+    {
+        <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+    }
+
+    <!-- MÉTRICAS DA TURMA -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4">
+                <small class="text-muted d-block fw-semibold">Receita Efetiva da Turma</small>
+                <span class="fs-4 fw-bold text-success">R$ @receitaEfetivaTurma.ToString("N2")</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4">
+                <small class="text-muted d-block fw-semibold">Previsão Total da Turma</small>
+                <span class="fs-4 fw-bold text-primary">R$ @receitaPrevisaoTurma.ToString("N2")</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4">
+                <small class="text-muted d-block fw-semibold">Inadimplentes na Turma</small>
+                <span class="fs-4 fw-bold text-danger">@inadimplentesTurma alunos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA DE ALUNOS -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
+        <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark m-0">👶 Alunos Matriculados</h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">@(turma.Alunos?.Count ?? 0) alunos</span>
+        </div>
+        <div class="table-responsive">
+            @if (turma.Alunos == null || turma.Alunos.Count == 0)
+            {
+                <div class="text-center p-5">
+                    <p class="text-muted">Nenhum aluno matriculado nesta turma ainda.</p>
+                    <button class="btn btn-primary btn-sm rounded-3 px-3" @onclick="AbrirModalNovoAluno">+ Adicionar Primeiro Aluno</button>
+                </div>
+            }
+            else
+            {
+                <table class="table align-middle mb-0 small">
+                    <thead class="table-light text-secondary uppercase">
+                        <tr>
+                            <th class="ps-4">Aluno(a)</th>
+                            <th>Vínculo / Convênio</th>
+                            <th>Turno</th>
+                            <th>Responsável & Contato</th>
+                            <th>Mensalidade</th>
+                            <th class="text-end pe-4">Ações / Boletos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var aluno in turma.Alunos)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">@aluno.Nome</td>
+                                <td>
+                                    @if (aluno.ConvenioPrefeitura)
+                                    {
+                                        <span class="badge bg-info-subtle text-info px-2 py-1 rounded-pill fw-semibold">Prefeitura</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-dark px-2 py-1 rounded-pill fw-semibold">Particular</span>
+                                    }
+                                </td>
+                                <td><span class="badge bg-light text-dark border px-2 py-1 fw-semibold">@aluno.TurnoAluno</span></td>
+                                <td>
+                                    <div class="text-dark">@aluno.NomeResponsavel</div>
+                                    <small class="text-muted">Tel: @aluno.TelefoneResponsavel</small>
+                                </td>
+                                <td><span class="fw-bold text-success">R$ @aluno.ValorMensalidade.ToString("N2")</span></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary rounded-3 px-3" @onclick="() => AbrirModalFicha(aluno)">
+                                        Gerenciar Ficha & Boletos →
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FICHA CADASTRAL E BOLETOS DO ALUNO -->
+@if (exibirModalFicha && alunoSelecionado != null)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold">👶 Ficha & Boletos: @alunoSelecionado.Nome</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalFicha = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark m-0">📋 Informações Cadastrais</h6>
+                        @if (!editandoAluno)
+                        {
+                            <button class="btn btn-outline-primary btn-sm rounded-3 px-3" @onclick="() => editandoAluno = true">✏️ Editar Ficha</button>
+                        }
+                        else
+                        {
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="CancelarEdicaoAluno">Cancelar</button>
+                                <button class="btn btn-success btn-sm rounded-3 px-3" @onclick="SalvarAlteracoesAluno">💾 Salvar</button>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row g-3 mb-4 bg-light p-3 rounded-3 border">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Nome do Aluno</label>
+                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.Nome" disabled="@(!editandoAluno)" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Responsável</label>
+                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.NomeResponsavel" disabled="@(!editandoAluno)" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Telefone / WhatsApp</label>
+                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.TelefoneResponsavel" disabled="@(!editandoAluno)" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Valor da Mensalidade (R$)</label>
+                            <input type="number" step="0.01" class="form-control rounded-3" @bind="alunoTemp.ValorMensalidade" disabled="@(!editandoAluno)" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Vínculo</label>
+                            <select class="form-select rounded-3" @bind="alunoTemp.ConvenioPrefeitura" disabled="@(!editandoAluno)">
+                                <option value="false">Particular</option>
+                                <option value="true">Prefeitura</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold">Turno do Aluno</label>
+                            <select class="form-select rounded-3" @bind="alunoTemp.TurnoAluno" disabled="@(!editandoAluno)">
+                                <option value="Matutino">Matutino</option>
+                                <option value="Vespertino">Vespertino</option>
+                                <option value="Integral">Integral</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-2">💵 Histórico de Boletos do Aluno (@DateTime.Now.Year)</h6>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Mês</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var b in boletosAlunoTemp)
+                                {
+                                    <tr>
+                                        <td class="ps-3 fw-bold">@b.Mes</td>
+                                        <td>R$ @b.Valor.ToString("N2")</td>
+                                        <td>
+                                            @if (b.Pago)
+                                            {
+                                                <span class="badge bg-success-subtle text-success">🟢 Pago</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger">🔴 Pendente</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            @if (!b.Pago)
+                                            {
+                                                <button class="btn btn-xs btn-outline-success rounded-3 px-2 py-1" @onclick="() => BaixarBoleto(b)">Dar Baixa</button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-xs btn-outline-secondary rounded-3 px-2 py-1" @onclick="() => EstornarBoleto(b)">Estornar</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalFicha = false">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL NOVO ALUNO -->
+@if (exibirModalNovoAluno)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold">👶 Matricular Novo Aluno</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalNovoAluno = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Nome do Aluno</label>
+                        <input type="text" class="form-control rounded-3" @bind="novoAluno.Nome" placeholder="Nome completo..." />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Responsável</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoAluno.NomeResponsavel" placeholder="Pai/Mãe..." />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Telefone</label>
+                            <input type="text" class="form-control rounded-3" @bind="novoAluno.TelefoneResponsavel" placeholder="(41) 99999-9999" />
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Vínculo</label>
+                            <select class="form-select rounded-3" @bind="novoAluno.ConvenioPrefeitura">
+                                <option value="false">Particular</option>
+                                <option value="true">Prefeitura</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Turno</label>
+                            <select class="form-select rounded-3" @bind="novoAluno.TurnoAluno">
+                                <option value="Matutino">Matutino</option>
+                                <option value="Vespertino">Vespertino</option>
+                                <option value="Integral">Integral</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Mensalidade (R$)</label>
+                        <input type="number" step="0.01" class="form-control rounded-3" @bind="novoAluno.ValorMensalidade" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalNovoAluno = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarNovoAluno">Matricular Aluno</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int TurmaId { get; set; }
+    private Turma turma = new();
+    
+    private decimal receitaEfetivaTurma = 0;
+    private decimal receitaPrevisaoTurma = 0;
+    private int inadimplentesTurma = 0;
+    private string mensagemSucesso = string.Empty;
+
+    private bool exibirModalFicha = false;
+    private bool editandoAluno = false;
+    private Aluno? alunoSelecionado;
+    private Aluno alunoTemp = new();
+
+    private bool exibirModalNovoAluno = false;
+    private Aluno novoAluno = new() { ValorMensalidade = 350.00m, MensalidadeMesPaga = true, TurnoAluno = "Integral" };
+
+    public class BoletoItem
+    {
+        public string Mes { get; set; } = string.Empty;
+        public decimal Valor { get; set; }
+        public bool Pago { get; set; }
+    }
+    private List<BoletoItem> boletosAlunoTemp = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDadosTurma();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Força a página a rolar para o topo sempre que carregar a turma
+        await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
+    }
+
+    private async Task CarregarDadosTurma()
+    {
+        var t = await Db.Turmas
+            .Include(x => x.Alunos)
+            .Include(x => x.Escola)
+            .FirstOrDefaultAsync(x => x.Id == TurmaId);
+
+        if (t != null) turma = t;
+
+        receitaPrevisaoTurma = 0;
+        receitaEfetivaTurma = 0;
+        inadimplentesTurma = 0;
+
+        if (turma.Alunos != null)
+        {
+            foreach (var a in turma.Alunos)
+            {
+                receitaPrevisaoTurma += a.ValorMensalidade;
+                if (a.MensalidadeMesPaga)
+                {
+                    receitaEfetivaTurma += a.ValorMensalidade;
+                }
+                else
+                {
+                    inadimplentesTurma++;
+                }
+            }
+        }
+    }
+
+    private void AbrirModalFicha(Aluno aluno)
+    {
+        alunoSelecionado = aluno;
+        CopiarAlunoParaTemp();
+        editandoAluno = false;
+
+        boletosAlunoTemp.Clear();
+        string[] meses = { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+        int mesAtualIdx = DateTime.Now.Month - 1;
+
+        for (int i = 0; i < meses.Length; i++)
+        {
+            bool pago = i < mesAtualIdx ? true : (i == mesAtualIdx ? aluno.MensalidadeMesPaga : false);
+            boletosAlunoTemp.Add(new BoletoItem { Mes = meses[i], Valor = aluno.ValorMensalidade, Pago = pago });
+        }
+
+        exibirModalFicha = true;
+    }
+
+    private void CopiarAlunoParaTemp()
+    {
+        if (alunoSelecionado != null)
+        {
+            alunoTemp = new Aluno
+            {
+                Id = alunoSelecionado.Id,
+                Nome = alunoSelecionado.Nome,
+                NomeResponsavel = alunoSelecionado.NomeResponsavel,
+                TelefoneResponsavel = alunoSelecionado.TelefoneResponsavel,
+                ConvenioPrefeitura = alunoSelecionado.ConvenioPrefeitura,
+                TurnoAluno = alunoSelecionado.TurnoAluno,
+                ValorMensalidade = alunoSelecionado.ValorMensalidade,
+                LoginPortal = alunoSelecionado.LoginPortal,
+                SenhaPortal = alunoSelecionado.SenhaPortal,
+                MensalidadeMesPaga = alunoSelecionado.MensalidadeMesPaga,
+                TurmaId = alunoSelecionado.TurmaId
+            };
+        }
+    }
+
+    private void CancelarEdicaoAluno()
+    {
+        CopiarAlunoParaTemp();
+        editandoAluno = false;
+    }
+
+    private async Task SalvarAlteracoesAluno()
+    {
+        if (alunoSelecionado != null)
+        {
+            alunoSelecionado.Nome = alunoTemp.Nome;
+            alunoSelecionado.NomeResponsavel = alunoTemp.NomeResponsavel;
+            alunoSelecionado.TelefoneResponsavel = alunoTemp.TelefoneResponsavel;
+            alunoSelecionado.ConvenioPrefeitura = alunoTemp.ConvenioPrefeitura;
+            alunoSelecionado.TurnoAluno = alunoTemp.TurnoAluno;
+            alunoSelecionado.ValorMensalidade = alunoTemp.ValorMensalidade;
+
+            Db.Alunos.Update(alunoSelecionado);
+            await Db.SaveChangesAsync();
+            editandoAluno = false;
+            mensagemSucesso = "Ficha do aluno atualizada com sucesso!";
+            await CarregarDadosTurma();
+        }
+    }
+
+    private void BaixarBoleto(BoletoItem b)
+    {
+        b.Pago = true;
+        if (b.Mes == DateTime.Now.ToString("MMMM", new System.Globalization.CultureInfo("pt-BR")) && alunoSelecionado != null)
+        {
+            alunoSelecionado.MensalidadeMesPaga = true;
+            Db.Alunos.Update(alunoSelecionado);
+            Db.SaveChanges();
+        }
+        StateHasChanged();
+    }
+
+    private void EstornarBoleto(BoletoItem b)
+    {
+        b.Pago = false;
+        if (b.Mes == DateTime.Now.ToString("MMMM", new System.Globalization.CultureInfo("pt-BR")) && alunoSelecionado != null)
+        {
+            alunoSelecionado.MensalidadeMesPaga = false;
+            Db.Alunos.Update(alunoSelecionado);
+            Db.SaveChanges();
+        }
+        StateHasChanged();
+    }
+
+    private void AbrirModalNovoAluno() => exibirModalNovoAluno = true;
+
+    private async Task SalvarNovoAluno()
+    {
+        novoAluno.TurmaId = TurmaId;
+        if (string.IsNullOrEmpty(novoAluno.LoginPortal))
+        {
+            novoAluno.LoginPortal = $"pai_{Guid.NewGuid().ToString().Substring(0, 5)}";
+            novoAluno.SenhaPortal = "123456";
+        }
+        Db.Alunos.Add(novoAluno);
+        await Db.SaveChangesAsync();
+        exibirModalNovoAluno = false;
+        novoAluno = new Aluno { ValorMensalidade = 350.00m, MensalidadeMesPaga = true, TurnoAluno = "Integral" };
+        mensagemSucesso = "Aluno matriculado com sucesso!";
+        await CarregarDadosTurma();
+    }
+
+    private void VoltarPainelEscola() => Navigation.NavigateTo($"/escola/gerenciar/{turma.EscolaId}");
+}

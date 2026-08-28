@@ -1,132 +1,238 @@
 @page "/superadmin/escolas"
 @using ZeloApp.Models
+@using ZeloApp.Services
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.AspNetCore.Components.Forms
 @inject AppDbContext Db
 @inject NavigationManager Navigation
+@inject AuthStateService Auth
 @rendermode InteractiveServer
 
-<PageTitle>Zelo - Gestão de Escolas</PageTitle>
+<PageTitle>Zelo - Painel Super Admin (SaaS)</PageTitle>
 
-<div class="container py-4" style="max-width: 900px;">
-    <!-- Cabeçalho Estilo App -->
-    <div class="d-flex justify-content-between align-items-center mb-4 p-4 bg-primary text-white rounded-4 shadow-sm">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h3 class="fw-bold m-0">🏫 Escolas Cadastradas</h3>
-            <p class="small m-0 opacity-75">Gerencie as instituições parceiras do sistema.</p>
+            <span class="badge bg-primary-subtle text-primary fw-bold mb-1 px-3 py-1 rounded-pill">Painel Administrativo Geral</span>
+            <h2 class="fw-bold text-dark m-0">Gestão de Escolas & SaaS</h2>
+            <p class="text-muted small m-0">Acompanhamento financeiro anual e aquisição de clientes.</p>
         </div>
-        <button class="btn btn-light text-primary rounded-3 px-3 py-2 fw-semibold shadow-sm" @onclick="() => exibirModal = true">+ Nova Escola</button>
+        <div>
+            <button class="btn btn-primary rounded-3 px-3 fw-semibold shadow-sm" @onclick="AbrirModalNovaEscola">
+                + Nova Escola (Cliente)
+            </button>
+        </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(mensagemErro))
-    {
-        <div class="alert alert-danger rounded-3 p-3 small mb-4 shadow-sm">⚠️ @mensagemErro</div>
-    }
+    <!-- MÉTRICAS -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4">
+                <small class="text-muted d-block fw-semibold">Receita Efetiva (Pago)</small>
+                <span class="fs-4 fw-bold text-success">R$ @receitaEfetivaMes.ToString("N2")</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4">
+                <small class="text-muted d-block fw-semibold">Previsão de Receita (Total)</small>
+                <span class="fs-4 fw-bold text-primary">R$ @receitaPrevisaoMes.ToString("N2")</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4">
+                <small class="text-muted d-block fw-semibold">Custo Fixo (Servidor)</small>
+                <span class="fs-4 fw-bold text-danger">R$ @custoServidor.ToString("N2")</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-warning border-4">
+                <small class="text-muted d-block fw-semibold">Inadimplentes (Mês)</small>
+                <span class="fs-4 fw-bold text-warning">@escolasInadimplentes</span>
+            </div>
+        </div>
+    </div>
 
-    @if (escolas == null || !escolas.Any())
-    {
-        <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted bg-white">Nenhuma escola cadastrada no momento.</div>
-    }
-    else
-    {
-        <div class="row g-3">
-            @foreach (var esc in escolas)
+    <!-- GRÁFICO DE BARRAS VETICAIS (FINANCEIRO ANUAL) -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <h5 class="fw-bold text-dark mb-1">📊 Demonstrativo Financeiro Anual (Receita Mensal)</h5>
+        <p class="text-muted small mb-4">Evolução do faturamento mês a mês</p>
+        
+        <div class="d-flex align-items-end justify-content-between gap-2 border-bottom pb-2" style="height: 200px;">
+            @foreach (var m in demonstrativoAnual)
             {
-                <div class="col-12 col-md-6">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4 h-100">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold text-dark m-0">@esc.Nome</h5>
-                            <span class="badge bg-success rounded-pill">Ativa</span>
-                        </div>
-                        <small class="text-muted d-block mb-1">CNPJ: @esc.Cnpj</small>
-                        <small class="text-muted d-block mb-3">Gestor: @esc.NomeGestor</small>
-                        <div class="mt-auto pt-2 border-top text-end">
-                            <a href="/superadmin/escolas/@esc.Id" class="btn btn-sm btn-outline-primary rounded-3 px-3 fw-semibold">Gerenciar Escola →</a>
-                        </div>
+                var alturaPct = maxValorGrafico > 0 ? (int)((m.Receita / maxValorGrafico) * 150) : 10;
+                <div class="d-flex flex-column align-items-center flex-grow-1">
+                    <span class="small fw-bold text-primary mb-1" style="font-size: 0.65rem;">R$ @m.Receita.ToString("N0")</span>
+                    <div class="w-100 bg-primary-subtle rounded-top d-flex align-items-end justify-content-center" style="height: 150px; max-width: 35px;">
+                        <div class="w-100 bg-primary rounded-top" style="height: @Math.Max(alturaPct, 5)px; transition: height 0.3s;"></div>
                     </div>
                 </div>
             }
         </div>
+        <div class="d-flex justify-content-between text-muted small mt-2 px-1">
+            @foreach (var m in demonstrativoAnual)
+            {
+                <span style="font-size: 0.7rem; width: 35px; text-align: center;">@m.NomeMes.Substring(0, 3)</span>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagemSucesso))
+    {
+        <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
     }
 
-    <!-- MODAL NOVA ESCOLA -->
-    @if (exibirModal)
-    {
-        <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content rounded-4 border-0 shadow">
-                    <div class="modal-header bg-primary text-white rounded-top-4">
-                        <h5 class="modal-title fw-bold">➕ Cadastrar Nova Escola</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModal = false"></button>
+    <!-- TABELA -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark m-0">🏫 Escolas Clientes da Plataforma</h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">@listaEscolas.Count unidades</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Escola / CNPJ</th>
+                        <th>Gestor(a) & Contato</th>
+                        <th>Alunos</th>
+                        <th>Assinatura</th>
+                        <th>Status Mês</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var escola in listaEscolas)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">@escola.Nome</div>
+                                <small class="text-muted">CNPJ: @escola.Cnpj</small>
+                            </td>
+                            <td>
+                                <div class="text-dark">@escola.NomeGestor</div>
+                                <small class="text-muted">Tel: @escola.TelefoneGestor</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">@(escolasAlunosCount.ContainsKey(escola.Id) ? escolasAlunosCount[escola.Id] : 0) alunos</span></td>
+                            <td><span class="fw-bold text-success">R$ @escola.ValorMensalidadePlataforma.ToString("N2")</span></td>
+                            <td>
+                                @if (escola.MensalidadeAtualPaga)
+                                {
+                                    <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill">🟢 Pago</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">🔴 Pendente</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary rounded-3 px-3" @onclick="() => GerenciarEscola(escola.Id)">
+                                    Gerenciar Unidade →
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+@if (exibirModalNovaEscola)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold">🏫 Nova Escola / Creche</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalNovaEscola = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Nome da Creche</label>
+                        <input type="text" class="form-control rounded-3" @bind="novaEscola.Nome" />
                     </div>
-                    <EditForm Model="novaEscola" OnValidSubmit="SalvarEscola">
-                        <DataAnnotationsValidator />
-                        <div class="modal-body p-4">
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary">Nome da Escola</label>
-                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.Nome" placeholder="Ex: Escola Alvorada" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary">CNPJ</label>
-                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.Cnpj" placeholder="00.000.000/0001-00" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary">Nome do Gestor</label>
-                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.NomeGestor" placeholder="Ex: Diretor João" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary">E-mail do Gestor</label>
-                                <InputText class="form-control rounded-3" @bind-Value="novaEscola.EmailGestor" placeholder="joao@escola.com" />
-                            </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">CNPJ</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaEscola.Cnpj" />
                         </div>
-                        <div class="modal-footer border-0 p-3 pt-0">
-                            <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModal = false">Cancelar</button>
-                            <button type="submit" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold">Salvar Escola</button>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Gestor(a)</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaEscola.NomeGestor" />
                         </div>
-                    </EditForm>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Telefone</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaEscola.TelefoneGestor" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Login Admin</label>
+                            <input type="text" class="form-control rounded-3" @bind="novaEscola.LoginAdmin" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalNovaEscola = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarNovaEscola">Salvar</button>
                 </div>
             </div>
         </div>
-    }
-</div>
+    </div>
+}
 
 @code {
-    private List<Escola> escolas = new();
-    private Escola novaEscola = new();
-    private bool exibirModal = false;
-    private string? mensagemErro;
+    private List<Escola> listaEscolas = new();
+    private Dictionary<int, int> escolasAlunosCount = new();
+    private List<MesFinanceiro> demonstrativoAnual = new();
+    private decimal receitaEfetivaMes = 0;
+    private decimal receitaPrevisaoMes = 0;
+    private decimal custoServidor = 150.00m;
+    private int escolasInadimplentes = 0;
+    private decimal maxValorGrafico = 1000m;
+    private bool exibirModalNovaEscola = false;
+    private Escola novaEscola = new() { ValorMensalidadePlataforma = 450.00m, MensalidadeAtualPaga = true };
+    private string mensagemSucesso = string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    public class MesFinanceiro
     {
-        await CarregarEscolas();
+        public string NomeMes { get; set; } = string.Empty;
+        public decimal Receita { get; set; }
     }
 
-    private async Task CarregarEscolas()
+    protected override async Task OnInitializedAsync() => await CarregarDadosSuperAdmin();
+
+    private async Task CarregarDadosSuperAdmin()
     {
-        try
+        listaEscolas = await Db.Escolas.ToListAsync();
+        var todasAsTurmas = await Db.Turmas.Include(t => t.Alunos).ToListAsync();
+        receitaPrevisaoMes = 0; receitaEfetivaMes = 0; escolasInadimplentes = 0; escolasAlunosCount.Clear();
+
+        foreach (var escola in listaEscolas)
         {
-            escolas = await Db.Escolas.OrderByDescending(e => e.Id).ToListAsync();
+            receitaPrevisaoMes += escola.ValorMensalidadePlataforma;
+            if (escola.MensalidadeAtualPaga) receitaEfetivaMes += escola.ValorMensalidadePlataforma;
+            else escolasInadimplentes++;
+            escolasAlunosCount[escola.Id] = todasAsTurmas.Where(t => t.EscolaId == escola.Id).Sum(t => t.Alunos?.Count ?? 0);
         }
-        catch (Exception ex)
+
+        string[] meses = { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+        demonstrativoAnual.Clear(); maxValorGrafico = 1000m;
+        int baseUnidades = Math.Max(1, listaEscolas.Count);
+
+        for (int i = 0; i < meses.Length; i++)
         {
-            mensagemErro = $"Erro ao carregar escolas: {ex.Message}";
+            decimal recMes = i <= DateTime.Now.Month - 1 ? (baseUnidades * 450.00m) : 0;
+            if (recMes > maxValorGrafico) maxValorGrafico = recMes;
+            demonstrativoAnual.Add(new MesFinanceiro { NomeMes = meses[i], Receita = recMes });
         }
     }
 
-    private async Task SalvarEscola()
+    private void AbrirModalNovaEscola() => exibirModalNovaEscola = true;
+    private async Task SalvarNovaEscola()
     {
-        try
-        {
-            Db.Escolas.Add(novaEscola);
-            await Db.SaveChangesAsync();
-            exibirModal = false;
-            novaEscola = new Escola();
-            await CarregarEscolas();
-        }
-        catch (Exception ex)
-        {
-            mensagemErro = $"Erro ao salvar: {ex.Message}";
-        }
+        Db.Escolas.Add(novaEscola); await Db.SaveChangesAsync();
+        exibirModalNovaEscola = false; mensagemSucesso = "Escola cadastrada!"; await CarregarDadosSuperAdmin();
     }
+    private void GerenciarEscola(int id) => Navigation.NavigateTo($"/superadmin/escola/gerenciar/{id}");
 }

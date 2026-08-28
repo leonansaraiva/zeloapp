@@ -1,47 +1,43 @@
 using Microsoft.EntityFrameworkCore;
+using ZeloApp;
 using ZeloApp.Models;
+using ZeloApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
+// 1. Configurando o DbContext para usar o banco em memória (perfeito para testes locais)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ZeloDb"));
 
+// 2. Adicionando serviços do Blazor Server
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// 3. Registrando serviços customizados da aplicação (ex: AuthStateService)
+builder.Services.AddScoped<AuthStateService>();
+
 var app = builder.Build();
 
-// Bloco global para capturar e mostrar qualquer erro de inicialização na tela e no console
-app.UseDeveloperExceptionPage();
+// 4. Executando o Seeder para popular dados iniciais na primeira execução
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+}
 
+// 5. Configuração do pipeline HTTP e Middlewares
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+// 6. Mapeamento dos componentes Blazor (Essencial para as páginas funcionarem e evitar 404)
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
-
-// Tenta carregar o banco de dados de forma segura com Try-Catch visível
-try
-{
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.EnsureCreated();
-    
-    // Se você tiver o Seeder, chama aqui dentro protegido
-    DbSeeder.CarregarDadosIniciais(scope.ServiceProvider);
-    Console.WriteLine("✅ Banco de dados e Seeder carregados com sucesso!");
-}
-catch (Exception ex)
-{
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine($"\n❌ ERRO CRÍTICO NA INICIALIZAÇÃO DO BANCO: {ex.Message}\n{ex.StackTrace}\n");
-    Console.ResetColor();
-}
 
 app.Run();

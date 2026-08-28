@@ -24,6 +24,37 @@
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+
+
+
+    <!-- SCRIPT PARA TRADUZIR AS MENSAGENS DE RECONEXÃO DO BLAZOR -->
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+        // Observa alterações na página para traduzir a caixa de reconexão automaticamente
+        const observer = new MutationObserver((mutations) => {
+            const reconnectModal = document.getElementById('components-reconnect-modal');
+            if (reconnectModal) {
+                // Tenta traduzir o texto interno de reconexão
+                const textElement = reconnectModal.querySelector('p, h5, span');
+                if (textElement && textElement.innerText.includes('Rejoining the server...')) {
+                    textElement.innerText = "Falha na reconexão... tentando novamente em breve.";
+                }
+                
+                // Você também pode traduzir os estados de "Tentando reconectar..."
+                const h = reconnectModal.innerHTML;
+                if (h.includes('Attempting to reconnect')) {
+                    reconnectModal.innerHTML = reconnectModal.innerHTML.replace(
+                        'Attempting to reconnect to the server...', 
+                        'Tentando reconectar ao servidor...'
+                    );
+                }
+            }
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script>
+
     <script src="app.js"></script>
 
     <script>
