@@ -5,34 +5,34 @@ using ZeloApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configurando o DbContext para usar o banco em memória (perfeito para testes locais)
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("ZeloDb"));
-
-// 2. Adicionando serviços do Blazor Server
+// Adiciona os serviços do Razor Components / Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// 3. Registrando serviços customizados da aplicação (ex: AuthStateService)
+// Configuração do Banco de Dados (SQLite)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=zelo.db"));
+
+// Seu serviço de autenticação
 builder.Services.AddScoped<AuthStateService>();
 
 var app = builder.Build();
 
-// 4. Executando o Seeder para popular dados iniciais na primeira execução
+// Executa o Seeder do banco ao iniciar
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DbSeeder.SeedAsync(db);
 }
 
-// 5. Configuração do pipeline HTTP e Middlewares
+// Configuração de ambiente para produção / Render
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+    // NÃO use app.UseHsts() ou UseHttpsRedirection() de forma agressiva no Render 
+    // se ele já faz o SSL Termination no proxy externo, ou ajuste assim:
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
