@@ -8,15 +8,9 @@ namespace ZeloApp.Models
     {
         public static async Task SeedAsync(AppDbContext db)
         {
-            // Garante que o banco está criado
             await db.Database.EnsureCreatedAsync();
-
-            // Se já houver escolas, não duplica o seed
             if (await db.Escolas.AnyAsync()) return;
 
-            // ==========================================
-            // ESCOLA 1: Creche Sementinha do Saber
-            // ==========================================
             var escola1 = new Escola
             {
                 Nome = "Creche Sementinha do Saber",
@@ -32,9 +26,6 @@ namespace ZeloApp.Models
                 MensalidadeAtualPaga = true
             };
 
-            // ==========================================
-            // ESCOLA 2: Centro Educacional Pequeno Passo
-            // ==========================================
             var escola2 = new Escola
             {
                 Nome = "Centro Educacional Pequeno Passo",
@@ -47,87 +38,80 @@ namespace ZeloApp.Models
                 LoginPortal = "portal_passo",
                 SenhaPortal = "123456",
                 ValorMensalidadePlataforma = 600.00m,
-                MensalidadeAtualPaga = false // Exemplo de escola inadimplente com o SaaS
+                MensalidadeAtualPaga = false
             };
 
             db.Escolas.AddRange(escola1, escola2);
             await db.SaveChangesAsync();
 
-            // Nomes de exemplo para gerar alunos variados
-            string[] nomesAlunos = { "Lucas", "Julia", "Enzo", "Valentina", "Matheus", "Sophia", "Gabriel", "Helena", "Davi", "Alice", "Miguel", "Laura", "Arthur", "Manuela", "Bernardo", "Isadora", "Heitor", "Lívia", "Theo", "Antonella" };
-            string[] sobrenomes = { "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes", "Costa", "Martins", "Araújo", "Barbosa", "Cardoso", "Dias" };
+            string[] nomesAlunos = { "Lucas", "Julia", "Enzo", "Valentina", "Matheus", "Sophia", "Gabriel", "Helena", "Davi", "Alice" };
+            string[] sobrenomes = { "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves" };
+            string[] fotosAlunos = {
+                "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=150&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1540479859555-170e78326214?w=150&auto=format&fit=crop&q=80"
+            };
 
             Random rand = new Random();
 
-            // Criando Turmas e Alunos para a ESCOLA 1
-            string[] nomesTurmas = { "Berçário I", "Maternal I", "Infantil I", "Infantil II" };
-            
-            foreach (var nomeTurma in nomesTurmas)
+            var turma = new Turma { Nome = "Maternal I", Turno = "Integral", ProfessorResponsavel = "Profª Juliana", EscolaId = escola1.Id };
+            db.Turmas.Add(turma);
+            await db.SaveChangesAsync();
+
+            for (int i = 1; i <= 10; i++)
             {
-                var turma = new Turma
+                string sobrenome = sobrenomes[rand.Next(sobrenomes.Length)];
+                string nomeAluno = $"{nomesAlunos[rand.Next(nomesAlunos.Length)]} {sobrenome}";
+                string nomeResp = $"Responsável de {nomeAluno.Split(' ')[0]}";
+
+                var aluno = new Aluno
                 {
-                    Nome = nomeTurma,
-                    EscolaId = escola1.Id
+                    Nome = nomeAluno,
+                    FotoUrl = fotosAlunos[rand.Next(fotosAlunos.Length)],
+                    Endereco = $"Rua das Flores, {rand.Next(10, 500)} - Curitiba/PR",
+                    NomeResponsavel = nomeResp,
+                    TelefoneResponsavel = $"(41) 9{rand.Next(1000, 9999)}-{rand.Next(1000, 9999)}",
+                    ConvenioPrefeitura = i % 3 == 0,
+                    TurnoAluno = "Integral",
+                    LoginPortal = $"pai_{rand.Next(10000, 99999)}",
+                    SenhaPortal = "123456",
+                    ValorMensalidade = 450.00m,
+                    MensalidadeMesPaga = i % 2 == 0,
+                    TurmaId = turma.Id
                 };
-                db.Turmas.Add(turma);
+                db.Alunos.Add(aluno);
                 await db.SaveChangesAsync();
 
-                // Adiciona cerca de 20 a 25 alunos por turma na Escola 1
-                int qtdAlunos = rand.Next(20, 26);
-                for (int i = 1; i <= qtdAlunos; i++)
+                // Responsável Principal
+                var respPrincipal = new Responsavel
                 {
-                    string nomeCompleto = $"{nomesAlunos[rand.Next(nomesAlunos.Length)]} {sobrenomes[rand.Next(sobrenomes.Length)]}";
-                    string nomeResp = $"Responsável de {nomeCompleto.Split(' ')[0]}";
-                    
-                    var aluno = new Aluno
-                    {
-                        Nome = nomeCompleto,
-                        NomeResponsavel = nomeResp,
-                        TelefoneResponsavel = $"(41) 9{rand.Next(1000, 9999)}-{rand.Next(1000, 9999)}",
-                        ConvenioPrefeitura = rand.Next(0, 10) > 7, // 30% chance de ser da prefeitura
-                        LoginPortal = $"pai_{rand.Next(10000, 99999)}",
-                        SenhaPortal = "123456",
-                        ValorMensalidade = rand.Next(300, 600), // Mensalidade entre 300 e 600 reais
-                        MensalidadeMesPaga = rand.Next(0, 10) > 2, // 80% adimplentes, 20% inadimplentes
-                        TurmaId = turma.Id
-                    };
-                    db.Alunos.Add(aluno);
-                }
-                await db.SaveChangesAsync();
-            }
-
-            // Criando Turmas e Alunos para a ESCOLA 2 (Pequeno Passo)
-            string[] nomesTurmas2 = { "Berçário II", "Maternal II", "Pré-Escola" };
-            foreach (var nomeTurma in nomesTurmas2)
-            {
-                var turma = new Turma
-                {
-                    Nome = nomeTurma,
-                    EscolaId = escola2.Id
+                    Nome = nomeResp,
+                    Telefone = aluno.TelefoneResponsavel,
+                    Endereco = aluno.Endereco,
+                    Parentesco = "Pai / Mãe",
+                    Principal = true,
+                    PodeRetirar = true,
+                    AlunoId = aluno.Id,
+                    FotoUrl = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
                 };
-                db.Turmas.Add(turma);
-                await db.SaveChangesAsync();
+                db.Responsaveis.Add(respPrincipal);
 
-                int qtdAlunos = rand.Next(15, 25);
-                for (int i = 1; i <= qtdAlunos; i++)
+                // Autorizado Extra (Ex: Tio/Avô com opção temporária)
+                var autorizadoExtra = new Responsavel
                 {
-                    string nomeCompleto = $"{nomesAlunos[rand.Next(nomesAlunos.Length)]} {sobrenomes[rand.Next(sobrenomes.Length)]}";
-                    string nomeResp = $"Responsável de {nomeCompleto.Split(' ')[0]}";
-
-                    var aluno = new Aluno
-                    {
-                        Nome = nomeCompleto,
-                        NomeResponsavel = nomeResp,
-                        TelefoneResponsavel = $"(41) 9{rand.Next(1000, 9999)}-{rand.Next(1000, 9999)}",
-                        ConvenioPrefeitura = false,
-                        LoginPortal = $"pai_{rand.Next(10000, 99999)}",
-                        SenhaPortal = "123456",
-                        ValorMensalidade = rand.Next(400, 750),
-                        MensalidadeMesPaga = rand.Next(0, 10) > 3,
-                        TurmaId = turma.Id
-                    };
-                    db.Alunos.Add(aluno);
-                }
+                    Nome = $"Tio Roberto ({nomeAluno.Split(' ')[0]})",
+                    Telefone = "(41) 98765-4321",
+                    Endereco = "Rua do Sol, 123",
+                    Parentesco = "Tio / Tia",
+                    Principal = false,
+                    PodeRetirar = true,
+                    Temporario = i % 2 == 1,
+                    DataInicio = DateTime.Today,
+                    DataFim = DateTime.Today.AddDays(15),
+                    AlunoId = aluno.Id,
+                    FotoUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+                };
+                db.Responsaveis.Add(autorizadoExtra);
                 await db.SaveChangesAsync();
             }
         }

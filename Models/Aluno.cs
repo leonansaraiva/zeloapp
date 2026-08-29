@@ -9,14 +9,18 @@ namespace ZeloApp.Models
         [Required]
         public string Nome { get; set; } = string.Empty;
 
+        public string FotoUrl { get; set; } = string.Empty;
+        public string Endereco { get; set; } = string.Empty;
+
+        // Dados do Responsável Principal
         public string NomeResponsavel { get; set; } = string.Empty;
         public string TelefoneResponsavel { get; set; } = string.Empty;
 
-        // Vínculo / Convênio
-        public bool ConvenioPrefeitura { get; set; } = false; // True = Prefeitura, False = Particular
-        public string TurnoAluno { get; set; } = "Integral"; // Matutino, Vespertino ou Integral
+        // Vínculo & Turno
+        public bool ConvenioPrefeitura { get; set; } = false;
+        public string TurnoAluno { get; set; } = "Integral";
 
-        // Credenciais do Portal
+        // Credenciais do Portal de Pais
         public string LoginPortal { get; set; } = string.Empty;
         public string SenhaPortal { get; set; } = string.Empty;
 
