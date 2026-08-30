@@ -1,80 +1,11 @@
 ﻿@inherits LayoutComponentBase
-@using ZeloApp.Services
-@inject NavigationManager Navigation
-@inject AuthStateService Auth
 
-<div class="app-container">
-    <nav class="sidebar-mini shadow-sm">
-        <div class="sidebar-brand text-center py-3 border-bottom border-secondary">
-            <span class="fs-4">🛡️</span>
-        </div>
-        <div class="sidebar-nav py-3 d-flex flex-column align-items-center gap-3">
-            @if (Auth.TipoUsuario == "SuperAdmin")
-            {
-                <a href="/superadmin/escolas" class="nav-icon-item" title="Painel de Escolas & SaaS">🏠</a>
-
-                @if (IsPaginaGerenciarEscola)
-                {
-                    <hr class="w-75 my-1 text-muted" />
-                    <a href="/superadmin/escolas" class="nav-icon-item text-secondary bg-light" title="Voltar ao Painel Geral">⬅️</a>
-                    <a href="javascript:void(0)" class="nav-icon-item text-primary bg-primary-subtle" title="Modo Suporte" @onclick="AcessarSuporteAtual">🚀</a>
-                }
-            }
-            else if (Auth.TipoUsuario == "Diretora")
-            {
-                <a href="/escola/gerenciar/@Auth.EscolaId" class="nav-icon-item @(IsPaginaPainelEscola ? "active-menu" : "")" title="Painel da Unidade">📊</a>
-            }
-            
-            <!-- BOTÃO DE LOGOUT FUNCIONAL -->
-            <button class="nav-icon-item text-danger mt-auto logout-btn border-0 bg-transparent" title="Sair / Trocar Conta" @onclick="Sair">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
-                </svg>
-            </button>
-        </div>
-    </nav>
-
-    <main class="main-content">
-        <div class="content-wrapper p-4">
+<div class="app-container min-vh-100 bg-light d-flex flex-column">
+    <NavMenu />
+    
+    <main class="flex-grow-1 w-100">
+        <article class="container-fluid px-3 px-md-4 py-4">
             @Body
-        </div>
+        </article>
     </main>
 </div>
-
-<style>
-    .app-container { display: flex; min-height: 100vh; background-color: #f4f6f9; }
-    .sidebar-mini { width: 70px; position: fixed; top: 0; bottom: 0; left: 0; background-color: #ffffff; border-right: 1px solid #dee2e6; z-index: 1050; display: flex; flex-direction: column; }
-    .nav-icon-item { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #495057; text-decoration: none; transition: all 0.2s ease; font-size: 1.2rem; cursor: pointer; }
-    .nav-icon-item:hover { background-color: #e9ecef; color: #0d6efd; }
-    .active-menu { background-color: #e7f1ff; color: #0d6efd; }
-    .logout-btn:hover { background-color: #f8d7da !important; color: #dc3545 !important; }
-    .main-content { margin-left: 70px; flex: 1; min-width: 0; }
-</style>
-
-@code {
-    private string urlAtual = string.Empty;
-    private bool IsPaginaGerenciarEscola => urlAtual.Contains("/superadmin/escola/gerenciar/");
-    private bool IsPaginaPainelEscola => urlAtual.Contains("/escola/gerenciar/");
-
-    protected override void OnParametersSet()
-    {
-        urlAtual = Navigation.Uri;
-    }
-
-    private void Sair() 
-    { 
-        Auth.FazerLogout(); 
-        Navigation.NavigateTo("/", forceLoad: true); 
-    }
-    
-    private void AcessarSuporteAtual()
-    {
-        var parts = urlAtual.Split('/');
-        if (int.TryParse(parts.Last(), out int id))
-        {
-            Auth.FazerLoginDiretora(id, "Unidade Selecionada", "Suporte Admin");
-            Navigation.NavigateTo($"/escola/gerenciar/{id}", forceLoad: true);
-        }
-    }
-}

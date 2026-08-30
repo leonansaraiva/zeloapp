@@ -7,56 +7,52 @@
 @inject AuthStateService Auth
 @rendermode InteractiveServer
 
-<div class="container-fluid">
+<div class="container-fluid px-2 px-md-4 py-3">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <div class="d-flex gap-2 mb-2">
-                <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="Voltar">← Voltar ao Painel Geral</button>
-                <button class="btn btn-dark btn-sm rounded-3 fw-semibold shadow-sm" @onclick="EntrarComoDiretora">
+            <div class="d-flex gap-2 mb-2 flex-wrap">
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="Voltar">← Voltar ao Painel Geral</button>
+                <button class="btn btn-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" @onclick="EntrarComoDiretora">
                     🚀 Acessar Painel (Modo Suporte)
                 </button>
             </div>
-            <h2 class="fw-bold text-dark m-0">Unidade: @escola.Nome</h2>
+            <h2 class="fw-bold text-dark m-0 fs-3">Unidade: @escola.Nome</h2>
             <p class="text-muted small m-0">Controle financeiro detalhado com valores, multas e descontos por mês.</p>
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(mensagemSucesso))
     {
-        <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+        <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
     }
 
-    <!-- RESUMO FINANCEIRO CORRETO -->
-    <div class="row g-3 mb-4">
+    <!-- RESUMO FINANCEIRO -->
+    <div class="row g-2 g-md-3 mb-4">
         <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4">
-                <small class="text-muted d-block fw-semibold">Total Pago pela Escola (Ano)</small>
-                <span class="fs-4 fw-bold text-success">R$ @totalPagoAno.ToString("N2")</span>
-                <small class="text-success" style="font-size: 0.75rem;">🟢 Soma real dos meses quitados</small>
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4 h-100">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Total Pago pela Escola (Ano)</small>
+                <span class="fs-5 fs-md-4 fw-bold text-success">R$ @totalPagoAno.ToString("N2")</span>
             </div>
         </div>
         <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4">
-                <small class="text-muted d-block fw-semibold">Total Pendente / Em Aberto (Ano)</small>
-                <span class="fs-4 fw-bold text-danger">R$ @totalPendenteAno.ToString("N2")</span>
-                <small class="text-danger" style="font-size: 0.75rem;">🔴 Previsão dos meses futuros e pendências</small>
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4 h-100">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Total Pendente / Em Aberto (Ano)</small>
+                <span class="fs-5 fs-md-4 fw-bold text-danger">R$ @totalPendenteAno.ToString("N2")</span>
             </div>
         </div>
     </div>
 
-    <!-- GRÁFICO DE BARRAS MENSAIS COM VALORES REAIS -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-        <h5 class="fw-bold text-dark mb-1">📊 Gráfico de Faturamento Mensal (Valores Reais)</h5>
-        <p class="text-muted small mb-4">Comparativo mês a mês do valor dos boletos (Quitados vs Pendentes)</p>
-        
-        <div class="d-flex align-items-end justify-content-between gap-2 border-bottom pb-2" style="height: 180px;">
+    <!-- GRÁFICO -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4 mb-4">
+        <h5 class="fw-bold text-dark mb-1 fs-6">📊 Gráfico de Faturamento Mensal</h5>
+        <div class="d-flex align-items-end justify-content-between gap-1 gap-md-2 border-bottom pb-2" style="height: 160px;">
             @foreach (var p in historicoPagamentos)
             {
                 var valorTotalMes = p.Valor + p.Multa - p.Desconto;
                 <div class="d-flex flex-column align-items-center flex-grow-1">
-                    <span class="small fw-bold @(p.Pago ? "text-success" : "text-danger") mb-1" style="font-size: 0.6rem;">R$ @valorTotalMes.ToString("N0")</span>
-                    <div class="w-100 @(p.Pago ? "bg-success-subtle" : "bg-danger-subtle") rounded-top d-flex align-items-end justify-content-center" style="height: 120px; max-width: 35px;">
-                        <div class="w-100 @(p.Pago ? "bg-success" : "bg-danger") rounded-top" style="height: @(p.Pago ? "120px" : "45px"); transition: height 0.3s;"></div>
+                    <span class="small fw-bold @(p.Pago ? "text-success" : "text-danger") mb-1" style="font-size: 0.55rem;">R$ @valorTotalMes.ToString("N0")</span>
+                    <div class="w-100 @(p.Pago ? "bg-success-subtle" : "bg-danger-subtle") rounded-top d-flex align-items-end justify-content-center" style="height: 110px; max-width: 30px;">
+                        <div class="w-100 @(p.Pago ? "bg-success" : "bg-danger") rounded-top" style="height: @(p.Pago ? "110px" : "40px");"></div>
                     </div>
                 </div>
             }
@@ -64,7 +60,7 @@
         <div class="d-flex justify-content-between text-muted small mt-2 px-1">
             @foreach (var p in historicoPagamentos)
             {
-                <span style="font-size: 0.7rem; width: 35px; text-align: center;">@p.Mes.Substring(0, 3)</span>
+                <span style="font-size: 0.65rem; width: 30px; text-align: center;">@p.Mes.Substring(0, 3)</span>
             }
         </div>
     </div>
@@ -72,114 +68,87 @@
     <div class="row g-4">
         <!-- BLOCOS DE EDIÇÃO -->
         <div class="col-12 col-lg-5 d-flex flex-column gap-4">
-            
-            <!-- 1. DADOS CADASTRAIS -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0">📋 Dados Cadastrais</h5>
+                    <h5 class="fw-bold text-dark m-0 fs-6">📋 Dados Cadastrais</h5>
                     @if (!editandoGeral)
                     {
-                        <button class="btn btn-outline-primary btn-sm rounded-3 px-3" @onclick="() => editandoGeral = true">Editar</button>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" @onclick="() => editandoGeral = true">Editar</button>
                     }
                     else
                     {
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="() => editandoGeral = false">Cancelar</button>
-                            <button class="btn btn-success btn-sm rounded-3 px-3" @onclick="SalvarGeral">Salvar</button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" @onclick="() => editandoGeral = false">Cancelar</button>
+                            <button class="btn btn-success btn-sm rounded-pill px-3 py-1" @onclick="SalvarGeral">Salvar</button>
                         </div>
                     }
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">Nome da Creche</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.Nome" disabled="@(!editandoGeral)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.Nome" disabled="@(!editandoGeral)" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">CNPJ</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.Cnpj" disabled="@(!editandoGeral)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.Cnpj" disabled="@(!editandoGeral)" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">Gestor(a)</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.NomeGestor" disabled="@(!editandoGeral)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.NomeGestor" disabled="@(!editandoGeral)" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">Telefone</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.TelefoneGestor" disabled="@(!editandoGeral)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.TelefoneGestor" disabled="@(!editandoGeral)" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold">Valor Padrão da Mensalidade (R$)</label>
-                    <input type="number" step="0.01" class="form-control rounded-3" @bind="escolaTemp.ValorMensalidadePlataforma" disabled="@(!editandoGeral)" />
+                    <label class="form-label small fw-semibold">Valor Padrão (R$)</label>
+                    <input type="number" step="0.01" class="form-control rounded-pill" @bind="escolaTemp.ValorMensalidadePlataforma" disabled="@(!editandoGeral)" />
                 </div>
             </div>
 
-            <!-- 2. CREDENCIAIS ADMIN -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-primary border-4">
+            <!-- CREDENCIAIS ADMIN -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white border-start border-primary border-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0">🔑 Credenciais Admin</h5>
+                    <h5 class="fw-bold text-dark m-0 fs-6">🔑 Credenciais Admin</h5>
                     @if (!editandoAdmin)
                     {
-                        <button class="btn btn-outline-primary btn-sm rounded-3 px-3" @onclick="() => editandoAdmin = true">Alterar</button>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" @onclick="() => editandoAdmin = true">Alterar</button>
                     }
                     else
                     {
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="() => editandoAdmin = false">Cancelar</button>
-                            <button class="btn btn-success btn-sm rounded-3 px-3" @onclick="SalvarAdmin">Salvar</button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" @onclick="() => editandoAdmin = false">Cancelar</button>
+                            <button class="btn btn-success btn-sm rounded-pill px-3 py-1" @onclick="SalvarAdmin">Salvar</button>
                         </div>
                     }
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">Login Admin</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.LoginAdmin" disabled="@(!editandoAdmin)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.LoginAdmin" disabled="@(!editandoAdmin)" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">Senha Admin</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.SenhaAdmin" disabled="@(!editandoAdmin)" />
+                    <input type="text" class="form-control rounded-pill" @bind="escolaTemp.SenhaAdmin" disabled="@(!editandoAdmin)" />
                 </div>
             </div>
-
-            <!-- 3. CREDENCIAIS PORTAL -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white border-start border-secondary border-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0">🌐 Credenciais Portal Pais</h5>
-                    @if (!editandoPortal)
-                    {
-                        <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" @onclick="() => editandoPortal = true">Alterar</button>
-                    }
-                    else
-                    {
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="() => editandoPortal = false">Cancelar</button>
-                            <button class="btn btn-success btn-sm rounded-3 px-3" @onclick="SalvarPortal">Salvar</button>
-                        </div>
-                    }
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Login Portal</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.LoginPortal" disabled="@(!editandoPortal)" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Senha Portal</label>
-                    <input type="text" class="form-control rounded-3" @bind="escolaTemp.SenhaPortal" disabled="@(!editandoPortal)" />
-                </div>
-            </div>
-
         </div>
 
-        <!-- HISTÓRICO DE PAGAMENTOS E AJUSTES (MULTAS/DESCONTOS) -->
+        <!-- HISTÓRICO DE BOLETOS (RESPONSIVO SEM SCROLL) -->
         <div class="col-12 col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
                 <div class="card-header bg-white p-3 px-4 border-bottom">
-                    <h5 class="fw-bold text-dark m-0">📊 Histórico de Boletos & Faturamento (@DateTime.Now.Year)</h5>
-                    <small class="text-muted">Gerencie valores, aplique multas, descontos e dê baixa.</small>
+                    <h5 class="fw-bold text-dark m-0 fs-6">📊 Histórico de Boletos (@DateTime.Now.Year)</h5>
+                    <small class="text-muted">Gerencie valores, multas e dê baixa.</small>
                 </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light text-secondary small text-uppercase">
+
+                <!-- Tabela Desktop -->
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle mb-0 small">
+                        <thead class="table-light text-secondary uppercase">
                             <tr>
-                                <th class="ps-4">Mês</th>
+                                <th class="ps-3">Mês</th>
                                 <th>Valor Total</th>
                                 <th>Status</th>
-                                <th class="text-end pe-4">Ação / Baixa</th>
+                                <th class="text-end pe-3">Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -187,32 +156,20 @@
                             {
                                 var valorFinal = p.Valor + p.Multa - p.Desconto;
                                 <tr>
-                                    <td class="ps-4">
+                                    <td class="ps-3">
                                         <div class="fw-bold text-dark">@p.Mes</div>
-                                        <small class="text-muted">Base: R$ @p.Valor.ToString("N2") @(p.Multa > 0 ? $"| Multa: +R$ {p.Multa}" : "") @(p.Desconto > 0 ? $"| Desc: -R$ {p.Desconto}" : "")</small>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Base: R$ @p.Valor.ToString("N2")</small>
                                     </td>
                                     <td><span class="fw-bold text-dark">R$ @valorFinal.ToString("N2")</span></td>
                                     <td>
-                                        @if (p.Pago)
-                                        {
-                                            <span class="badge bg-success-subtle text-success px-2.5 py-1 rounded-pill">🟢 Pago</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger-subtle text-danger px-2.5 py-1 rounded-pill">🔴 Pendente</span>
-                                        }
+                                        @if (p.Pago) { <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill">🟢 Pago</span> }
+                                        else { <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill">🔴 Pendente</span> }
                                     </td>
-                                    <td class="text-end pe-4">
+                                    <td class="text-end pe-3">
                                         <div class="d-flex justify-content-end gap-1">
-                                            @if (!p.Pago)
-                                            {
-                                                <button class="btn btn-sm btn-outline-success rounded-3 px-2" @onclick="() => DarBaixa(p)">Baixar</button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-sm btn-outline-secondary rounded-3 px-2" @onclick="() => Estornar(p)">Estornar</button>
-                                            }
-                                            <button class="btn btn-sm btn-outline-primary rounded-3 px-2" @onclick="() => AbrirModalAjuste(p)">Ajustar</button>
+                                            @if (!p.Pago) { <button class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => DarBaixa(p)">Baixar</button> }
+                                            else { <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => Estornar(p)">Estornar</button> }
+                                            <button class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => AbrirModalAjuste(p)">Ajustar</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -220,40 +177,65 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Cards Mobile (Zero Scroll Horizontal) -->
+                <div class="d-block d-md-none p-3">
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var p in historicoPagamentos)
+                        {
+                            var valorFinal = p.Valor + p.Multa - p.Desconto;
+                            <div class="card border shadow-none rounded-4 p-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-dark">@p.Mes</span>
+                                    @if (p.Pago) { <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">🟢 Pago</span> }
+                                    else { <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">🔴 Pendente</span> }
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted" style="font-size: 0.75rem;">Total: <strong class="text-dark">R$ @valorFinal.ToString("N2")</strong></span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    @if (!p.Pago) { <button class="btn btn-sm btn-outline-success rounded-pill w-50 py-1" style="font-size: 0.75rem;" @onclick="() => DarBaixa(p)">Dar Baixa</button> }
+                                    else { <button class="btn btn-sm btn-outline-secondary rounded-pill w-50 py-1" style="font-size: 0.75rem;" @onclick="() => Estornar(p)">Estornar</button> }
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill w-50 py-1" style="font-size: 0.75rem;" @onclick="() => AbrirModalAjuste(p)">Ajustar</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL PARA APLICAR MULTA OU DESCONTO EM UM MÊS ESPECÍFICO -->
+<!-- MODAL AJUSTE -->
 @if (exibirModalAjuste && mesSelecionado != null)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered mx-2 mx-md-auto">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold">⚙️ Ajustar Boleto: @mesSelecionado.Mes</h5>
+                    <h5 class="modal-title fw-bold fs-6">⚙️ Ajustar Boleto: @mesSelecionado.Mes</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalAjuste = false"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Valor Base do Boleto (R$)</label>
-                        <input type="number" step="0.01" class="form-control rounded-3" @bind="mesSelecionado.Valor" />
+                <div class="modal-body p-3">
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Valor Base (R$)</label>
+                        <input type="number" step="0.01" class="form-control rounded-pill" @bind="mesSelecionado.Valor" />
                     </div>
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold text-danger">Adicionar Multa (R$)</label>
-                            <input type="number" step="0.01" class="form-control rounded-3" @bind="mesSelecionado.Multa" />
+                            <label class="form-label small fw-semibold text-danger">Multa (R$)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" @bind="mesSelecionado.Multa" />
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold text-success">Aplicar Desconto (R$)</label>
-                            <input type="number" step="0.01" class="form-control rounded-3" @bind="mesSelecionado.Desconto" />
+                            <label class="form-label small fw-semibold text-success">Desconto (R$)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" @bind="mesSelecionado.Desconto" />
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalAjuste = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarAjusteBoleto">Salvar Ajuste</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalAjuste = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" @onclick="SalvarAjusteBoleto">Salvar</button>
                 </div>
             </div>
         </div>
@@ -264,12 +246,10 @@
     [Parameter] public int EscolaId { get; set; }
     private Escola escola = new();
     private Escola escolaTemp = new();
-    
     private bool editandoGeral = false;
     private bool editandoAdmin = false;
     private bool editandoPortal = false;
     private bool exibirModalAjuste = false;
-    
     private string mensagemSucesso = string.Empty;
     private decimal totalPagoAno = 0;
     private decimal totalPendenteAno = 0;
@@ -289,127 +269,48 @@
     protected override async Task OnInitializedAsync()
     {
         var e = await Db.Escolas.FindAsync(EscolaId);
-        if (e != null)
-        {
-            escola = e;
-            if (string.IsNullOrEmpty(escola.LoginPortal))
-            {
-                escola.LoginPortal = $"portal_{escola.LoginAdmin}";
-                escola.SenhaPortal = "123456";
-            }
-            CopiarTemp();
-        }
+        if (e != null) { escola = e; CopiarTemp(); }
         GerarHistoricoAnual();
     }
 
-    private void CopiarTemp()
-    {
-        escolaTemp = new Escola
-        {
-            Id = escola.Id,
-            Nome = escola.Nome,
-            Cnpj = escola.Cnpj,
-            NomeGestor = escola.NomeGestor,
-            TelefoneGestor = escola.TelefoneGestor,
-            EmailGestor = escola.EmailGestor,
-            LoginAdmin = escola.LoginAdmin,
-            SenhaAdmin = escola.SenhaAdmin,
-            LoginPortal = escola.LoginPortal,
-            SenhaPortal = escola.SenhaPortal,
-            ValorMensalidadePlataforma = escola.ValorMensalidadePlataforma,
-            MensalidadeAtualPaga = escola.MensalidadeAtualPaga
-        };
-    }
+    private void CopiarTemp() => escolaTemp = new Escola { Id = escola.Id, Nome = escola.Nome, Cnpj = escola.Cnpj, NomeGestor = escola.NomeGestor, TelefoneGestor = escola.TelefoneGestor, LoginAdmin = escola.LoginAdmin, SenhaAdmin = escola.SenhaAdmin, ValorMensalidadePlataforma = escola.ValorMensalidadePlataforma };
 
     private async Task SalvarGeral()
     {
-        escola.Nome = escolaTemp.Nome;
-        escola.Cnpj = escolaTemp.Cnpj;
-        escola.NomeGestor = escolaTemp.NomeGestor;
-        escola.TelefoneGestor = escolaTemp.TelefoneGestor;
-        escola.ValorMensalidadePlataforma = escolaTemp.ValorMensalidadePlataforma;
-        Db.Escolas.Update(escola);
-        await Db.SaveChangesAsync();
-        editandoGeral = false;
-        GerarHistoricoAnual();
-        mensagemSucesso = "Dados cadastrais atualizados com sucesso!";
+        escola.Nome = escolaTemp.Nome; escola.Cnpj = escolaTemp.Cnpj; escola.NomeGestor = escolaTemp.NomeGestor; escola.TelefoneGestor = escolaTemp.TelefoneGestor; escola.ValorMensalidadePlataforma = escolaTemp.ValorMensalidadePlataforma;
+        Db.Escolas.Update(escola); await Db.SaveChangesAsync(); editandoGeral = false; GerarHistoricoAnual(); mensagemSucesso = "Atualizado com sucesso!";
     }
 
     private async Task SalvarAdmin()
     {
-        escola.LoginAdmin = escolaTemp.LoginAdmin;
-        escola.SenhaAdmin = escolaTemp.SenhaAdmin;
-        Db.Escolas.Update(escola);
-        await Db.SaveChangesAsync();
-        editandoAdmin = false;
-        mensagemSucesso = "Credenciais de Admin atualizadas com sucesso!";
-    }
-
-    private async Task SalvarPortal()
-    {
-        escola.LoginPortal = escolaTemp.LoginPortal;
-        escola.SenhaPortal = escolaTemp.SenhaPortal;
-        Db.Escolas.Update(escola);
-        await Db.SaveChangesAsync();
-        editandoPortal = false;
-        mensagemSucesso = "Credenciais do Portal atualizadas com sucesso!";
+        escola.LoginAdmin = escolaTemp.LoginAdmin; escola.SenhaAdmin = escolaTemp.SenhaAdmin;
+        Db.Escolas.Update(escola); await Db.SaveChangesAsync(); editandoAdmin = false; mensagemSucesso = "Credenciais atualizadas!";
     }
 
     private void GerarHistoricoAnual()
     {
         string[] meses = { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
-        
         if (historicoPagamentos.Count == 0)
         {
             int mesAtualIdx = DateTime.Now.Month - 1;
             for (int i = 0; i < meses.Length; i++)
             {
-                bool pagoSimulado = i < mesAtualIdx ? true : (i == mesAtualIdx ? escola.MensalidadeAtualPaga : false);
-                historicoPagamentos.Add(new PagamentoMensal 
-                { 
-                    Mes = meses[i], 
-                    Valor = escola.ValorMensalidadePlataforma, 
-                    Multa = 0, 
-                    Desconto = 0, 
-                    Pago = pagoSimulado 
-                });
+                bool pagoSimulado = i < mesAtualIdx || (i == mesAtualIdx && escola.MensalidadeAtualPaga);
+                historicoPagamentos.Add(new PagamentoMensal { Mes = meses[i], Valor = escola.ValorMensalidadePlataforma, Pago = pagoSimulado });
             }
         }
-        else
-        {
-            // Atualiza o valor base caso tenha mudado na edição, mantendo multas e descontos aplicados
-            foreach (var p in historicoPagamentos)
-            {
-                p.Valor = escola.ValorMensalidadePlataforma;
-            }
-        }
+        else { foreach (var p in historicoPagamentos) p.Valor = escola.ValorMensalidadePlataforma; }
 
-        totalPagoAno = 0; 
-        totalPendenteAno = 0;
-
+        totalPagoAno = 0; totalPendenteAno = 0;
         foreach (var p in historicoPagamentos)
         {
-            decimal valorFinal = p.Valor + p.Multa - p.Desconto;
-            if (p.Pago) 
-                totalPagoAno += valorFinal; 
-            else 
-                totalPendenteAno += valorFinal;
+            decimal vf = p.Valor + p.Multa - p.Desconto;
+            if (p.Pago) totalPagoAno += vf; else totalPendenteAno += vf;
         }
     }
 
-    private void AbrirModalAjuste(PagamentoMensal p)
-    {
-        mesSelecionado = p;
-        exibirModalAjuste = true;
-    }
-
-    private void SalvarAjusteBoleto()
-    {
-        exibirModalAjuste = false;
-        GerarHistoricoAnual();
-        mensagemSucesso = "Ajuste de valor/multa salvo com sucesso!";
-    }
-
+    private void AbrirModalAjuste(PagamentoMensal p) { mesSelecionado = p; exibirModalAjuste = true; }
+    private void SalvarAjusteBoleto() { exibirModalAjuste = false; GerarHistoricoAnual(); mensagemSucesso = "Ajuste salvo!"; }
     private void DarBaixa(PagamentoMensal p) { p.Pago = true; GerarHistoricoAnual(); StateHasChanged(); }
     private void Estornar(PagamentoMensal p) { p.Pago = false; GerarHistoricoAnual(); StateHasChanged(); }
     private void EntrarComoDiretora() { Auth.FazerLoginDiretora(escola.Id, escola.Nome, "Suporte Admin"); Navigation.NavigateTo($"/escola/gerenciar/{escola.Id}"); }

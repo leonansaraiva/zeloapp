@@ -1,42 +1,98 @@
-﻿<div class="top-row ps-3 navbar navbar-dark bg-primary shadow-sm">
+﻿@rendermode InteractiveServer
+@using ZeloApp.Services
+@inject AuthStateService Auth
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3 shadow-sm sticky-top" style="height: 65px; z-index: 1050;">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="">🛡️ ZeloApp</a>
-        <!-- Botão hambúrguer que só aparece no celular -->
-        <button title="Navigation menu" class="navbar-toggler border-0 shadow-none d-md-none" @onclick="ToggleNavMenu">
+        <!-- LOGO -->
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="">
+            <span class="fs-4">🛡️</span> ZeloApp
+        </a>
+
+        <!-- BOTÃO MOBILE -->
+        <button class="navbar-toggler border-0 shadow-none text-white" type="button" @onclick="ToggleMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-    </div>
-</div>
 
-<!-- Menu lateral: visível direto no PC (d-md-block) e controlado por clique no celular -->
-<div class="@NavMenuCssClass nav-scrollable bg-white border-end shadow-sm" style="min-height: calc(100vh - 3.5rem);">
-    <nav class="flex-column p-3">
-        <div class="nav-item px-2 mb-2">
-            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="" Match="NavLinkMatch.All">
-                🏠 Painel Geral
-            </NavLink>
+        <!-- CONTEÚDO DA NAVBAR -->
+        <div class="collapse navbar-collapse @(menuAberto ? "show" : "")">
+            @if (Auth.EstaAutenticado)
+            {
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-2">
+                    @if (Auth.TipoUsuario == "SuperAdmin")
+                    {
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-white fw-semibold px-3 py-1.5 rounded-pill bg-white bg-opacity-10" href="/superadmin/escolas" Match="NavLinkMatch.All">
+                                🏫 Gestão de Escolas
+                            </NavLink>
+                        </li>
+                    }
+                    else if (Auth.EscolaId > 0)
+                    {
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-white fw-semibold px-3 py-1.5 rounded-pill bg-white bg-opacity-10" href="@($"/escola/gerenciar/{Auth.EscolaId}")" Match="NavLinkMatch.All">
+                                📊 Painel da Unidade
+                            </NavLink>
+                        </li>
+                    }
+                </ul>
+
+                <!-- PERFIL E LOGOUT -->
+                <div class="d-flex align-items-center gap-3 ms-auto mt-3 mt-lg-0 pt-2 pt-lg-0 border-top border-lg-0 border-white border-opacity-25">
+                    <div class="text-white text-end d-none d-sm-block">
+                        <div class="fw-bold small" style="line-height: 1.1;">@Auth.UsuarioNome</div>
+                        <span class="badge bg-white text-primary px-2 py-0.5 mt-1" style="font-size: 0.65rem;">@Auth.TipoUsuario</span>
+                    </div>
+
+                    <button class="btn btn-light text-danger fw-semibold rounded-pill px-3 py-1.5 btn-sm shadow-sm" @onclick="FazerLogout">
+                        🚪 Sair
+                    </button>
+                </div>
+            }
+            else
+            {
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <NavLink class="btn btn-light text-primary fw-semibold rounded-pill px-4 py-1.5 btn-sm" href="/login">
+                            🔑 Fazer Login
+                        </NavLink>
+                    </li>
+                </ul>
+            }
         </div>
-        <div class="nav-item px-2 mb-2">
-            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="/superadmin/escolas">
-                🏫 Gestão de Escolas
-            </NavLink>
-        </div>
-        <div class="nav-item px-2 mb-2">
-            <NavLink class="nav-link rounded-3 px-3 py-2 text-dark fw-semibold" href="/portal/pai">
-                📱 Portal da Família
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    </div>
+</nav>
 
 @code {
-    private bool collapseNavMenu = true;
-    
-    // Garante que no computador (md para cima) o menu fica sempre aberto, e no celular alterna
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse d-md-block" : "show";
+    private bool menuAberto = false;
+    private System.Threading.Timer? timer;
 
-    private void ToggleNavMenu()
+    protected override void OnInitialized()
     {
-        collapseNavMenu = !collapseNavMenu;
+        Auth.OnChange += StateHasChanged;
+        // Timer de segurança para forçar sincronização caso o evento escape do circuito Blazor
+        timer = new System.Threading.Timer(_ => 
+        {
+            InvokeAsync(StateHasChanged);
+        }, null, 0, 1000);
+    }
+
+    public void Dispose()
+    {
+        Auth.OnChange -= StateHasChanged;
+        timer?.Dispose();
+    }
+
+    private void ToggleMenu()
+    {
+        menuAberto = !menuAberto;
+    }
+
+    private void FazerLogout()
+    {
+        Auth.FazerLogout();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 }

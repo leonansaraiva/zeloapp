@@ -23,37 +23,47 @@
 
 <body>
     <Routes />
+
+    <!-- MODAL DE RECONEXÃO CUSTOMIZADO EM PORTUGUÊS -->
+<div id="components-reconnect-modal" class="components-reconnect-hide">
+    <div class="show">
+        <p>Tentando reconectar ao servidor...</p>
+    </div>
+    <div class="failed">
+        <p>Falha na conexão. <button class="btn btn-link p-0 text-decoration-underline" onclick="window.location.reload()">Recarregar página</button></p>
+    </div>
+    <div class="rejected">
+        <p>Conexão rejeitada. <button class="btn btn-link p-0 text-decoration-underline" onclick="window.location.reload()">Recarregar página</button></p>
+    </div>
+</div>
     <script src="_framework/blazor.web.js"></script>
 
-
-
-    <!-- SCRIPT PARA TRADUZIR AS MENSAGENS DE RECONEXÃO DO BLAZOR -->
-<script>
-    window.addEventListener('DOMContentLoaded', (event) => {
-        // Observa alterações na página para traduzir a caixa de reconexão automaticamente
-        const observer = new MutationObserver((mutations) => {
-            const reconnectModal = document.getElementById('components-reconnect-modal');
-            if (reconnectModal) {
-                // Tenta traduzir o texto interno de reconexão
-                const textElement = reconnectModal.querySelector('p, h5, span');
-                if (textElement && textElement.innerText.includes('Rejoining the server...')) {
-                    textElement.innerText = "Falha na reconexão... tentando novamente em breve.";
+    <!-- SCRIPT ROBUSTO PARA TRADUZIR AS MENSAGENS DE RECONEXÃO DO BLAZOR -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const observer = new MutationObserver(() => {
+                const modal = document.querySelector('#components-reconnect-modal');
+                if (modal) {
+                    // Varre todos os nós de texto dentro do modal de reconexão para traduzir o inglês do framework
+                    const walker = document.createTreeWalker(modal, NodeFilter.SHOW_TEXT, null, false);
+                    let node;
+                    while (node = walker.nextNode()) {
+                        if (node.nodeValue.includes("Attempting to reconnect")) {
+                            node.nodeValue = "Tentando reconectar ao servidor...";
+                        }
+                        if (node.nodeValue.includes("Rejoin failed")) {
+                            node.nodeValue = "Falha na reconexão... tentando novamente.";
+                        }
+                        if (node.nodeValue.includes("An unhandled exception has occurred")) {
+                            node.nodeValue = "Ocorreu um erro inesperado.";
+                        }
+                    }
                 }
-                
-                // Você também pode traduzir os estados de "Tentando reconectar..."
-                const h = reconnectModal.innerHTML;
-                if (h.includes('Attempting to reconnect')) {
-                    reconnectModal.innerHTML = reconnectModal.innerHTML.replace(
-                        'Attempting to reconnect to the server...', 
-                        'Tentando reconectar ao servidor...'
-                    );
-                }
-            }
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
         });
-        
-        observer.observe(document.body, { childList: true, subtree: true });
-    });
-</script>
+    </script>
 
     <script src="app.js"></script>
 

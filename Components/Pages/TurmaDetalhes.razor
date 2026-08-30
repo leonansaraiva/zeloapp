@@ -8,19 +8,19 @@
 @inject IJSRuntime JS
 @rendermode InteractiveServer
 
-<div class="container-fluid">
+<div class="container-fluid px-2 px-md-4 py-3">
     <!-- CABEÇALHO DA TURMA -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <button class="btn btn-outline-secondary btn-sm rounded-3 mb-2" @onclick="VoltarPainelEscola">← Voltar para a Unidade</button>
-            <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold text-dark m-0">📁 Turma: @turma.Nome</h2>
-                <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1">Turno: @turma.Turno</span>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2" @onclick="VoltarPainelEscola">← Voltar para a Unidade</button>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h2 class="fw-bold text-dark m-0 fs-3">📁 Turma: @turma.Nome</h2>
+                <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill">Turno: @turma.Turno</span>
             </div>
             <p class="text-muted small m-0 mt-1">👩‍🏫 Professora Responsável: <strong class="text-dark">@(string.IsNullOrEmpty(turma.ProfessorResponsavel) ? "Não definida" : turma.ProfessorResponsavel)</strong></p>
         </div>
         <div>
-            <button class="btn btn-primary rounded-3 px-3 fw-semibold shadow-sm" @onclick="AbrirModalNovoAluno">
+            <button class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm btn-sm" @onclick="AbrirModalNovoAluno">
                 + Matricular Aluno na Turma
             </button>
         </div>
@@ -28,95 +28,123 @@
 
     @if (!string.IsNullOrEmpty(mensagemSucesso))
     {
-        <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+        <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
     }
 
     <!-- MÉTRICAS DA TURMA -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 g-md-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4">
-                <small class="text-muted d-block fw-semibold">Receita Efetiva da Turma</small>
-                <span class="fs-4 fw-bold text-success">R$ @receitaEfetivaTurma.ToString("N2")</span>
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4 h-100">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Receita Efetiva da Turma</small>
+                <span class="fs-5 fs-md-4 fw-bold text-success">R$ @receitaEfetivaTurma.ToString("N2")</span>
             </div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4">
-                <small class="text-muted d-block fw-semibold">Previsão Total da Turma</small>
-                <span class="fs-4 fw-bold text-primary">R$ @receitaPrevisaoTurma.ToString("N2")</span>
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4 h-100">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Previsão Total da Turma</small>
+                <span class="fs-5 fs-md-4 fw-bold text-primary">R$ @receitaPrevisaoTurma.ToString("N2")</span>
             </div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4">
-                <small class="text-muted d-block fw-semibold">Inadimplentes na Turma</small>
-                <span class="fs-4 fw-bold text-danger">@inadimplentesTurma alunos</span>
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4 h-100">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Inadimplentes na Turma</small>
+                <span class="fs-5 fs-md-4 fw-bold text-danger">@inadimplentesTurma alunos</span>
             </div>
         </div>
     </div>
 
     <!-- LISTA DE ALUNOS -->
+<!-- LISTA DE ALUNOS -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
         <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold text-dark m-0">👶 Alunos Matriculados</h5>
-            <span class="badge bg-secondary rounded-pill px-3 py-2">@(turma.Alunos?.Count ?? 0) alunos</span>
+            <h5 class="fw-bold text-dark m-0 fs-6">👶 Alunos Matriculados</h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-1">@(turma.Alunos?.Count ?? 0) alunos</span>
         </div>
-        <div class="table-responsive">
-            @if (turma.Alunos == null || turma.Alunos.Count == 0)
-            {
-                <div class="text-center p-5">
-                    <p class="text-muted">Nenhum aluno matriculado nesta turma ainda.</p>
-                    <button class="btn btn-primary btn-sm rounded-3 px-3" @onclick="AbrirModalNovoAluno">+ Adicionar Primeiro Aluno</button>
-                </div>
-            }
-            else
-            {
+        
+        @if (turma.Alunos == null || turma.Alunos.Count == 0)
+        {
+            <div class="text-center p-5">
+                <p class="text-muted small">Nenhum aluno matriculado nesta turma ainda.</p>
+                <button class="btn btn-primary btn-sm rounded-pill px-3" @onclick="AbrirModalNovoAluno">+ Adicionar Primeiro Aluno</button>
+            </div>
+        }
+        else
+        {
+            <!-- VISÃO DE TABELA PARA DESKTOP -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table align-middle mb-0 small">
                     <thead class="table-light text-secondary uppercase">
                         <tr>
-                            <th class="ps-4">Aluno(a)</th>
-                            <th>Vínculo / Convênio</th>
+                            <th class="ps-3">Aluno(a)</th>
+                            <th>Vínculo</th>
                             <th>Turno</th>
-                            <th>Responsável & Contato</th>
+                            <th>Responsável</th>
                             <th>Mensalidade</th>
-                            <th class="text-end pe-4">Ações / Boletos</th>
+                            <th class="text-end pe-3">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var aluno in turma.Alunos)
                         {
                             <tr>
-                                <td class="ps-4">
+                                <td class="ps-3">
                                     <div class="d-flex align-items-center gap-2">
-                                        <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 38px; height: 38px; object-fit: cover;" />
+                                        <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" />
                                         <span class="fw-bold text-dark">@aluno.Nome</span>
                                     </div>
                                 </td>
                                 <td>
                                     @if (aluno.ConvenioPrefeitura)
                                     {
-                                        <span class="badge bg-info-subtle text-info px-2 py-1 rounded-pill fw-semibold">Prefeitura</span>
+                                        <span class="badge bg-info-subtle text-info px-2 py-0.5 rounded-pill fw-semibold">Prefeitura</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary-subtle text-dark px-2 py-1 rounded-pill fw-semibold">Particular</span>
+                                        <span class="badge bg-secondary-subtle text-dark px-2 py-0.5 rounded-pill fw-semibold">Particular</span>
                                     }
                                 </td>
-                                <td><span class="badge bg-light text-dark border px-2 py-1 fw-semibold">@aluno.TurnoAluno</span></td>
+                                <td><span class="badge bg-light text-dark border px-2 py-0.5 fw-semibold">@aluno.TurnoAluno</span></td>
                                 <td>
                                     <div class="text-dark">@aluno.NomeResponsavel</div>
-                                    <small class="text-muted">Tel: @aluno.TelefoneResponsavel</small>
+                                    <small class="text-muted" style="font-size: 0.7rem;">@aluno.TelefoneResponsavel</small>
                                 </td>
                                 <td><span class="fw-bold text-success">R$ @aluno.ValorMensalidade.ToString("N2")</span></td>
-                                <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-outline-primary rounded-3 px-3" @onclick="() => AbrirModalFicha(aluno)">
-                                        Gerenciar Ficha & Boletos →
+                                <td class="text-end pe-3">
+                                    <button class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 0.75rem;" @onclick="() => AbrirModalFicha(aluno)">
+                                        Gerenciar →
                                     </button>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
-            }
-        </div>
+            </div>
+
+            <!-- VISÃO EM CARDS PARA CELULAR (ZERO SCROLL LATERAL) -->
+            <div class="d-block d-md-none p-3">
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var aluno in turma.Alunos)
+                    {
+                        <div class="card border shadow-none rounded-4 p-3 bg-light">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 42px; height: 42px; object-fit: cover;" />
+                                <div>
+                                    <h6 class="fw-bold text-dark m-0">@aluno.Nome</h6>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Resp: @aluno.NomeResponsavel (@aluno.TelefoneResponsavel)</small>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center small mb-3 text-muted">
+                                <div>Turno: <strong class="text-dark">@aluno.TurnoAluno</strong></div>
+                                <div>Valor: <strong class="text-success">R$ @aluno.ValorMensalidade.ToString("N2")</strong></div>
+                            </div>
+                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" style="font-size: 0.8rem;" @onclick="() => AbrirModalFicha(aluno)">
+                                Gerenciar Ficha & Boletos →
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -124,69 +152,69 @@
 @if (exibirModalFicha && alunoSelecionado != null)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-lg mx-2 mx-md-auto">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header bg-primary text-white rounded-top-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <img src="@(string.IsNullOrEmpty(alunoTemp.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : alunoTemp.FotoUrl)" class="rounded-circle border border-2 border-white shadow-sm" style="width: 50px; height: 50px; object-fit: cover;" />
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="@(string.IsNullOrEmpty(alunoTemp.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : alunoTemp.FotoUrl)" class="rounded-circle border border-2 border-white shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" />
                         <div>
-                            <h5 class="modal-title fw-bold m-0">👶 Ficha & Boletos: @alunoSelecionado.Nome</h5>
-                            <small class="text-white-50">@turma.Nome | Turno: @alunoTemp.TurnoAluno</small>
+                            <h5 class="modal-title fw-bold m-0 fs-6">👶 Ficha & Boletos: @alunoSelecionado.Nome</h5>
+                            <small class="text-white-50" style="font-size: 0.7rem;">@turma.Nome | Turno: @alunoTemp.TurnoAluno</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalFicha = false"></button>
                 </div>
-                <div class="modal-body p-4" style="max-height: 80vh; overflow-y: auto;">
+                <div class="modal-body p-3 p-md-4" style="max-height: 75vh; overflow-y: auto;">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark m-0">📋 Informações Cadastrais</h6>
+                        <h6 class="fw-bold text-dark m-0 fs-6">📋 Informações Cadastrais</h6>
                         @if (!editandoAluno)
                         {
-                            <button class="btn btn-outline-primary btn-sm rounded-3 px-3" @onclick="() => editandoAluno = true">✏️ Editar Ficha</button>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="() => editandoAluno = true">✏️ Editar Ficha</button>
                         }
                         else
                         {
                             <div class="d-flex gap-2">
-                                <button class="btn btn-outline-secondary btn-sm rounded-3" @onclick="CancelarEdicaoAluno">Cancelar</button>
-                                <button class="btn btn-success btn-sm rounded-3 px-3" @onclick="SalvarAlteracoesAluno">💾 Salvar Aluno</button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" style="font-size: 0.75rem;" @onclick="CancelarEdicaoAluno">Cancelar</button>
+                                <button class="btn btn-success btn-sm rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="SalvarAlteracoesAluno">💾 Salvar</button>
                             </div>
                         }
                     </div>
 
-                    <div class="row g-3 mb-4 bg-light p-3 rounded-3 border">
+                    <div class="row g-2 mb-4 bg-light p-3 rounded-4 border">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold">Nome do Aluno</label>
-                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.Nome" disabled="@(!editandoAluno)" />
+                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.Nome" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold">URL da Foto do Aluno</label>
-                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.FotoUrl" disabled="@(!editandoAluno)" />
+                            <label class="form-label small fw-semibold">URL da Foto</label>
+                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.FotoUrl" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold">Responsável Principal</label>
-                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.NomeResponsavel" disabled="@(!editandoAluno)" />
+                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.NomeResponsavel" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold">Telefone / WhatsApp</label>
-                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.TelefoneResponsavel" disabled="@(!editandoAluno)" />
+                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.TelefoneResponsavel" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Endereço Residencial</label>
-                            <input type="text" class="form-control rounded-3" @bind="alunoTemp.Endereco" placeholder="Rua, número, bairro..." disabled="@(!editandoAluno)" />
+                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.Endereco" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12 col-md-4">
-                            <label class="form-label small fw-semibold">Valor da Mensalidade (R$)</label>
-                            <input type="number" step="0.01" class="form-control rounded-3" @bind="alunoTemp.ValorMensalidade" disabled="@(!editandoAluno)" />
+                            <label class="form-label small fw-semibold">Mensalidade (R$)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" @bind="alunoTemp.ValorMensalidade" disabled="@(!editandoAluno)" />
                         </div>
                         <div class="col-12 col-md-4">
                             <label class="form-label small fw-semibold">Vínculo</label>
-                            <select class="form-select rounded-3" @bind="alunoTemp.ConvenioPrefeitura" disabled="@(!editandoAluno)">
+                            <select class="form-select rounded-pill" @bind="alunoTemp.ConvenioPrefeitura" disabled="@(!editandoAluno)">
                                 <option value="false">Particular</option>
                                 <option value="true">Prefeitura</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-4">
-                            <label class="form-label small fw-semibold">Turno do Aluno</label>
-                            <select class="form-select rounded-3" @bind="alunoTemp.TurnoAluno" disabled="@(!editandoAluno)">
+                            <label class="form-label small fw-semibold">Turno</label>
+                            <select class="form-select rounded-pill" @bind="alunoTemp.TurnoAluno" disabled="@(!editandoAluno)">
                                 <option value="Matutino">Matutino</option>
                                 <option value="Vespertino">Vespertino</option>
                                 <option value="Integral">Integral</option>
@@ -197,9 +225,9 @@
                     <!-- SEÇÃO DE PESSOAS AUTORIZADAS A RETIRAR -->
                     <div class="mb-4 pt-2 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-dark m-0">🛡️ Quem Retira a Criança (Autorizados)</h6>
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-3 px-3" @onclick="AbrirModalNovoAutorizado">
-                                + Adicionar Autorizado
+                            <h6 class="fw-bold text-dark m-0 fs-6">🛡️ Autorizados a Retirar</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="AbrirModalNovoAutorizado">
+                                + Adicionar
                             </button>
                         </div>
 
@@ -207,7 +235,7 @@
                             @if (listaAutorizadosAluno == null || listaAutorizadosAluno.Count == 0)
                             {
                                 <div class="col-12">
-                                    <p class="text-muted small text-center py-2 bg-light rounded-3">Nenhum autorizado extra cadastrado.</p>
+                                    <p class="text-muted small text-center py-2 bg-light rounded-pill">Nenhum autorizado extra cadastrado.</p>
                                 </div>
                             }
                             else
@@ -215,33 +243,29 @@
                                 @foreach (var auth in listaAutorizadosAluno)
                                 {
                                     <div class="col-12 col-md-6">
-                                        <div class="card border shadow-none rounded-3 p-2 bg-white">
+                                        <div class="card border shadow-none rounded-4 p-2 bg-white h-100">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <img src="@(string.IsNullOrEmpty(auth.FotoUrl) ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80" : auth.FotoUrl)" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;" />
+                                                    <img src="@(string.IsNullOrEmpty(auth.FotoUrl) ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80" : auth.FotoUrl)" class="rounded-circle border" style="width: 35px; height: 35px; object-fit: cover;" />
                                                     <div>
                                                         <div class="d-flex align-items-center gap-1">
-                                                            <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;">@auth.Nome</h6>
+                                                            <h6 class="fw-bold text-dark m-0" style="font-size: 0.8rem;">@auth.Nome</h6>
                                                             @if (auth.Temporario)
                                                             {
-                                                                <span class="badge bg-warning text-dark px-1.5 py-0.5" style="font-size: 0.6rem;">Temp</span>
+                                                                <span class="badge bg-warning text-dark px-1 py-0.5" style="font-size: 0.55rem;">Temp</span>
                                                             }
                                                         </div>
-                                                        <small class="text-muted d-block" style="font-size: 0.72rem;">@auth.Parentesco | Tel: @auth.Telefone</small>
-                                                        @if (auth.Temporario && auth.DataInicio.HasValue && auth.DataFim.HasValue)
-                                                        {
-                                                            <small class="text-primary fw-semibold d-block" style="font-size: 0.68rem;">📅 @auth.DataInicio.Value.ToString("dd/MM") até @auth.DataFim.Value.ToString("dd/MM")</small>
-                                                        }
+                                                        <small class="text-muted d-block" style="font-size: 0.68rem;">@auth.Parentesco | @auth.Telefone</small>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex gap-1 align-items-center">
-                                                    <button type="button" class="btn btn-xs @(auth.PodeRetirar ? "btn-outline-success" : "btn-outline-danger") rounded-3 px-2 py-1" style="font-size: 0.7rem;" @onclick="() => AlternarStatusRetirada(auth)">
+                                                    <button type="button" class="btn btn-xs @(auth.PodeRetirar ? "btn-outline-success" : "btn-outline-danger") rounded-pill px-2 py-0.5" style="font-size: 0.65rem;" @onclick="() => AlternarStatusRetirada(auth)">
                                                         @(auth.PodeRetirar ? "Liberado" : "Bloqueado")
                                                     </button>
-                                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-3 px-2 py-1" style="font-size: 0.7rem;" @onclick="() => EditarAutorizado(auth)">✏️</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" style="font-size: 0.65rem;" @onclick="() => EditarAutorizado(auth)">✏️</button>
                                                     @if (!auth.Principal)
                                                     {
-                                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-3 px-1 py-1" style="font-size: 0.7rem;" @onclick="() => RemoverAutorizado(auth.Id)">✕</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;" @onclick="() => RemoverAutorizado(auth.Id)">✕</button>
                                                     }
                                                 </div>
                                             </div>
@@ -252,9 +276,9 @@
                         </div>
                     </div>
 
-                    <h6 class="fw-bold text-dark mb-2">💵 Histórico de Boletos do Aluno (@DateTime.Now.Year)</h6>
-                    <div class="table-responsive border rounded-3">
-                        <table class="table table-sm align-middle mb-0">
+                    <h6 class="fw-bold text-dark mb-2 fs-6">💵 Histórico de Boletos (@DateTime.Now.Year)</h6>
+                    <div class="table-responsive border rounded-4 overflow-hidden">
+                        <table class="table table-sm align-middle mb-0 small">
                             <thead class="table-light">
                                 <tr>
                                     <th class="ps-3">Mês</th>
@@ -272,21 +296,21 @@
                                         <td>
                                             @if (b.Pago)
                                             {
-                                                <span class="badge bg-success-subtle text-success">🟢 Pago</span>
+                                                <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill">🟢 Pago</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-danger-subtle text-danger">🔴 Pendente</span>
+                                                <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill">🔴 Pendente</span>
                                             }
                                         </td>
                                         <td class="text-end pe-3">
                                             @if (!b.Pago)
                                             {
-                                                <button class="btn btn-xs btn-outline-success rounded-3 px-2 py-1" @onclick="() => BaixarBoleto(b)">Dar Baixa</button>
+                                                <button class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => BaixarBoleto(b)">Baixar</button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-xs btn-outline-secondary rounded-3 px-2 py-1" @onclick="() => EstornarBoleto(b)">Estornar</button>
+                                                <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => EstornarBoleto(b)">Estornar</button>
                                             }
                                         </td>
                                     </tr>
@@ -296,7 +320,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalFicha = false">Fechar</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalFicha = false">Fechar</button>
                 </div>
             </div>
         </div>
@@ -307,25 +331,25 @@
 @if (exibirModalAutorizado)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); z-index: 2050;" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered mx-2 mx-md-auto">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold">@(autorizadoEdit.Id == 0 ? "➕ Adicionar Autorizado" : "✏️ Editar Autorizado")</h5>
+                    <h5 class="modal-title fw-bold fs-6">@(autorizadoEdit.Id == 0 ? "➕ Adicionar Autorizado" : "✏️ Editar Autorizado")</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalAutorizado = false"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
+                <div class="modal-body p-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-semibold">Nome Completo</label>
-                        <input type="text" class="form-control rounded-3" @bind="autorizadoEdit.Nome" placeholder="Ex: Tio Roberto" />
+                        <input type="text" class="form-control rounded-pill" @bind="autorizadoEdit.Nome" placeholder="Ex: Tio Roberto" />
                     </div>
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Telefone / WhatsApp</label>
-                            <input type="text" class="form-control rounded-3" @bind="autorizadoEdit.Telefone" placeholder="(41) 99999-9999" />
+                            <label class="form-label small fw-semibold">Telefone</label>
+                            <input type="text" class="form-control rounded-pill" @bind="autorizadoEdit.Telefone" placeholder="(41) 99999-9999" />
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Grau de Parentesco</label>
-                            <select class="form-select rounded-3" @bind="autorizadoEdit.Parentesco">
+                            <label class="form-label small fw-semibold">Parentesco</label>
+                            <select class="form-select rounded-pill" @bind="autorizadoEdit.Parentesco">
                                 <option value="Pai / Mãe">Pai / Mãe</option>
                                 <option value="Avô / Avó">Avô / Avó</option>
                                 <option value="Tio / Tia">Tio / Tia</option>
@@ -335,17 +359,17 @@
                             </select>
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-semibold">Endereço</label>
-                        <input type="text" class="form-control rounded-3" @bind="autorizadoEdit.Endereco" placeholder="Endereço do autorizado..." />
+                        <input type="text" class="form-control rounded-pill" @bind="autorizadoEdit.Endereco" placeholder="Endereço..." />
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-semibold">URL da Foto</label>
-                        <input type="text" class="form-control rounded-3" @bind="autorizadoEdit.FotoUrl" placeholder="https://..." />
+                        <input type="text" class="form-control rounded-pill" @bind="autorizadoEdit.FotoUrl" placeholder="https://..." />
                     </div>
 
-                    <div class="row g-2 mb-3 p-3 bg-light rounded-3 border">
-                        <div class="col-12 mb-2">
+                    <div class="row g-2 mb-2 p-3 bg-light rounded-4 border">
+                        <div class="col-12 mb-1">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="checkPodeRetirar" @bind="autorizadoEdit.PodeRetirar" />
                                 <label class="form-check-input-label fw-bold text-dark small" for="checkPodeRetirar">
@@ -366,18 +390,18 @@
                         {
                             <div class="col-6 mt-2">
                                 <label class="form-label small fw-semibold">Data Início</label>
-                                <input type="date" class="form-control form-control-sm rounded-3" @bind="autorizadoEdit.DataInicio" />
+                                <input type="date" class="form-control form-control-sm rounded-pill" @bind="autorizadoEdit.DataInicio" />
                             </div>
                             <div class="col-6 mt-2">
                                 <label class="form-label small fw-semibold">Data Fim</label>
-                                <input type="date" class="form-control form-control-sm rounded-3" @bind="autorizadoEdit.DataFim" />
+                                <input type="date" class="form-control form-control-sm rounded-pill" @bind="autorizadoEdit.DataFim" />
                             </div>
                         }
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalAutorizado = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarAutorizado">Salvar Dados</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalAutorizado = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" @onclick="SalvarAutorizado">Salvar</button>
                 </div>
             </div>
         </div>
@@ -388,52 +412,52 @@
 @if (exibirModalNovoAluno)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered mx-2 mx-md-auto">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold">👶 Matricular Novo Aluno</h5>
+                    <h5 class="modal-title fw-bold fs-6">👶 Matricular Novo Aluno</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalNovoAluno = false"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
+                <div class="modal-body p-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-semibold">Nome do Aluno</label>
-                        <input type="text" class="form-control rounded-3" @bind="novoAluno.Nome" placeholder="Nome completo..." />
+                        <input type="text" class="form-control rounded-pill" @bind="novoAluno.Nome" placeholder="Nome completo..." />
                     </div>
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Responsável</label>
-                            <input type="text" class="form-control rounded-3" @bind="novoAluno.NomeResponsavel" placeholder="Pai/Mãe..." />
+                            <input type="text" class="form-control rounded-pill" @bind="novoAluno.NomeResponsavel" placeholder="Pai/Mãe..." />
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Telefone</label>
-                            <input type="text" class="form-control rounded-3" @bind="novoAluno.TelefoneResponsavel" placeholder="(41) 99999-9999" />
+                            <input type="text" class="form-control rounded-pill" @bind="novoAluno.TelefoneResponsavel" placeholder="(41) 99999-9999" />
                         </div>
                     </div>
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2 mb-2">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Vínculo</label>
-                            <select class="form-select rounded-3" @bind="novoAluno.ConvenioPrefeitura">
+                            <select class="form-select rounded-pill" @bind="novoAluno.ConvenioPrefeitura">
                                 <option value="false">Particular</option>
                                 <option value="true">Prefeitura</option>
                             </select>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Turno</label>
-                            <select class="form-select rounded-3" @bind="novoAluno.TurnoAluno">
+                            <select class="form-select rounded-pill" @bind="novoAluno.TurnoAluno">
                                 <option value="Matutino">Matutino</option>
                                 <option value="Vespertino">Vespertino</option>
                                 <option value="Integral">Integral</option>
                             </select>
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label small fw-semibold">Mensalidade (R$)</label>
-                        <input type="number" step="0.01" class="form-control rounded-3" @bind="novoAluno.ValorMensalidade" />
+                        <input type="number" step="0.01" class="form-control rounded-pill" @bind="novoAluno.ValorMensalidade" />
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalNovoAluno = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarNovoAluno">Matricular Aluno</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalNovoAluno = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" @onclick="SalvarNovoAluno">Matricular</button>
                 </div>
             </div>
         </div>

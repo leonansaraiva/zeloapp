@@ -59,3 +59,33 @@ html, body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     cursor: pointer;
 }
+
+
+#components-reconnect-modal {
+    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: 20000;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+#components-reconnect-modal.components-reconnect-show {
+    display: flex !important;
+}
+
+#components-reconnect-modal > div {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+#components-reconnect-modal div { display: none; }
+#components-reconnect-modal.components-reconnect-show .show { display: block; }
+#components-reconnect-modal.components-reconnect-failed .failed { display: block; }
+#components-reconnect-modal.components-reconnect-rejected .rejected { display: block; }

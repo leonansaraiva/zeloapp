@@ -7,7 +7,7 @@
 @inject AuthStateService Auth
 @rendermode InteractiveServer
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light px-3">
     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="width: 100%; max-width: 420px;">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-primary">🛡️ ZeloApp - Acesso</h3>
@@ -16,20 +16,20 @@
 
         @if (!string.IsNullOrEmpty(mensagemErro))
         {
-            <div class="alert alert-danger rounded-3 p-3 small mb-3">⚠️ @mensagemErro</div>
+            <div class="alert alert-danger rounded-4 p-3 small mb-3">⚠️ @mensagemErro</div>
         }
 
         <div class="mb-3">
             <label class="form-label small fw-semibold text-secondary">Usuário / Login</label>
-            <input type="text" class="form-control rounded-3" @bind="usuario" placeholder="Digite seu usuário..." />
+            <input type="text" class="form-control rounded-pill" @value="usuario" @oninput="e => usuario = e.Value?.ToString() ?? string.Empty" @onkeydown="TratarKeyDown" placeholder="Digite seu usuário..." />
         </div>
 
         <div class="mb-4">
             <label class="form-label small fw-semibold text-secondary">Senha</label>
-            <input type="password" class="form-control rounded-3" @bind="senha" placeholder="********" />
+            <input type="password" class="form-control rounded-pill" @value="senha" @oninput="e => senha = e.Value?.ToString() ?? string.Empty" @onkeydown="TratarKeyDown" placeholder="********" />
         </div>
 
-        <button class="btn btn-primary w-100 rounded-3 py-2 fw-semibold shadow-sm" @onclick="FazerLogin">
+        <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" @onclick="FazerLogin">
             Entrar no Sistema →
         </button>
     </div>
@@ -40,6 +40,14 @@
     private string senha = string.Empty;
     private string mensagemErro = string.Empty;
 
+    private async Task TratarKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await FazerLogin();
+        }
+    }
+
     private async Task FazerLogin()
     {
         mensagemErro = string.Empty;
@@ -47,28 +55,28 @@
         if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(senha))
         {
             mensagemErro = "Preencha todos os campos.";
+            StateHasChanged();
             return;
         }
 
-        // 1. Verifica se é SuperAdmin fixo
         if (usuario == "admin" && senha == "admin123")
         {
-            Auth.FazerLoginDiretora(0, "Plataforma SaaS (SuperAdmin)", "Super Administrador");
-            Navigation.NavigateTo("/superadmin/escolas", forceLoad: true);
+            Auth.FazerLoginAdminMaster("Super Administrador");
+            Navigation.NavigateTo("/superadmin/escolas");
             return;
         }
 
-        // 2. Verifica se é o Admin de alguma Escola
         var escola = await Db.Escolas
             .FirstOrDefaultAsync(e => e.LoginAdmin == usuario && e.SenhaAdmin == senha);
 
         if (escola != null)
         {
             Auth.FazerLoginDiretora(escola.Id, escola.Nome, escola.NomeGestor);
-            Navigation.NavigateTo($"/escola/gerenciar/{escola.Id}", forceLoad: true);
+            Navigation.NavigateTo($"/escola/gerenciar/{escola.Id}");
             return;
         }
 
         mensagemErro = "Usuário ou senha incorretos.";
+        StateHasChanged();
     }
 }
