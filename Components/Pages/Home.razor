@@ -1,160 +1,39 @@
-﻿@* @page "/"
-@using ZeloApp.Models
-@using Microsoft.EntityFrameworkCore
-@inject AppDbContext Db
-@rendermode InteractiveServer
+﻿@page "/"
+@using ZeloApp.Services
+@inject NavigationManager Navigation
+@inject AuthStateService Auth
 
-<PageTitle>Zelo - Painel do Sistema</PageTitle>
-
-<div class="container py-4" style="max-width: 900px;">
-    <!-- Cabeçalho Estilo App -->
-    <div class="p-4 mb-4 bg-primary text-white rounded-4 shadow-sm">
-        <h3 class="fw-bold m-0">🛡️ Plataforma Zelo</h3>
-        <p class="small m-0 opacity-75">Gestão escolar e segurança na entrega de alunos.</p>
+<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="text-center">
+        <div class="spinner-border text-primary mb-3" role="status"></div>
+        <h5 class="fw-bold text-dark">Carregando o ZeloApp...</h5>
+        <p class="text-muted small">Aguarde um instante.</p>
     </div>
-
-    @if (!string.IsNullOrEmpty(erroMensagem))
-    {
-        <div class="alert alert-danger mb-4 rounded-3 shadow-sm p-3 small">
-            ⚠️ Erro ao carregar dados: @erroMensagem
-        </div>
-    }
-
-    <!-- Métricas (Cards Responsivos) -->
-    <div class="row g-3 mb-4">
-        <div class="col-6">
-            <div class="card border-0 shadow-sm rounded-4 border-start border-primary border-4 p-3 bg-white">
-                <small class="text-muted fw-semibold" style="font-size: 0.75rem;">ESCOLAS</small>
-                <h3 class="fw-bold text-primary m-0 fs-3">@totalEscolas</h3>
-                <small class="text-muted" style="font-size: 0.7rem;">Instituições ativas</small>
-            </div>
-        </div>
-
-        <div class="col-6">
-            <div class="card border-0 shadow-sm rounded-4 border-start border-success border-4 p-3 bg-white">
-                <small class="text-muted fw-semibold" style="font-size: 0.75rem;">STATUS</small>
-                <h3 class="fw-bold text-success m-0 fs-3">🟢 Online</h3>
-                <small class="text-muted" style="font-size: 0.7rem;">Operacional</small>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lista de Escolas Recentes -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold m-0 text-dark">🏫 Escolas Cadastradas</h5>
-        <a href="/superadmin/escolas" class="btn btn-primary btn-sm rounded-3 fw-semibold px-3 py-2">+ Nova Escola</a>
-    </div>
-
-    @if (escolasDTO == null || !escolasDTO.Any())
-    {
-        <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted small bg-white">
-            Nenhuma escola cadastrada no momento.
-        </div>
-    }
-    else
-    {
-        <!-- Versão Web: Tabela Limpa -->
-        <div class="table-responsive d-none d-md-block card border-0 shadow-sm rounded-4 p-3 bg-white">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3 rounded-start">Nome da Escola</th>
-                        <th>CNPJ</th>
-                        <th>Gestor</th>
-                        <th>Alunos</th>
-                        <th class="text-end pe-3 rounded-end">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var dto in escolasDTO)
-                    {
-                        <tr>
-                            <td class="ps-3 fw-bold">@dto.Escola.Nome</td>
-                            <td>@dto.Escola.Cnpj</td>
-                            <td>@dto.Escola.NomeGestor</td>
-                            <td><span class="badge bg-primary rounded-pill">👶 @dto.TotalAlunos</span></td>
-                            <td class="text-end pe-3">
-                                <a href="/superadmin/escolas/@dto.Escola.Id" class="btn btn-sm btn-outline-primary rounded-3 px-3">Acessar →</a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Versão Mobile: Cards Estilo Aplicativo -->
-        <div class="d-block d-md-none">
-            @foreach (var dto in escolasDTO)
-            {
-                <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white border-start border-primary border-4">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <strong class="d-block text-dark fs-6">@dto.Escola.Nome</strong>
-                            <small class="text-muted">CNPJ: @dto.Escola.Cnpj</small>
-                        </div>
-                        <span class="badge bg-primary rounded-pill">👶 @dto.TotalAlunos</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
-                        <small class="text-muted">👤 @dto.Escola.NomeGestor</small>
-                        <a href="/superadmin/escolas/@dto.Escola.Id" class="btn btn-sm btn-outline-primary rounded-3 px-3 py-1 fw-semibold">
-                            Acessar →
-                        </a>
-                    </div>
-                </div>
-            }
-        </div>
-    }
 </div>
 
 @code {
-    private int totalEscolas = 0;
-    private List<EscolaDto> escolasDTO = new();
-    private string? erroMensagem;
-
-    public class EscolaDto
+    protected override void OnInitialized()
     {
-        public Escola Escola { get; set; } = new();
-        public int TotalAlunos { get; set; }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
+        // Verifica se o usuário já possui sessão ativa
+        if (Auth.EstaAutenticado)
         {
-            erroMensagem = null;
-            totalEscolas = await Db.Escolas.CountAsync();
-            
-            var escolas = await Db.Escolas.OrderByDescending(e => e.Id).Take(5).ToListAsync();
-            
-            escolasDTO = new List<EscolaDto>();
-            foreach (var esc in escolas)
+            if (Auth.TipoUsuario == "SuperAdmin")
             {
-                int totalCriancas = 0;
-                try
-                {
-                    var turmasIds = await Db.Turmas.Where(t => t.EscolaId == esc.Id).Select(t => t.Id).ToListAsync();
-                    if (turmasIds.Any())
-                    {
-                        totalCriancas = await Db.Criancas.Where(c => turmasIds.Contains(c.TurmaId)).CountAsync();
-                    }
-                }
-                catch
-                {
-                    totalCriancas = 0;
-                }
-                
-                escolasDTO.Add(new EscolaDto
-                {
-                    Escola = esc,
-                    TotalAlunos = totalCriancas
-                });
+                Navigation.NavigateTo("/superadmin/escolas", forceLoad: true);
+            }
+            else if (Auth.EscolaId > 0)
+            {
+                Navigation.NavigateTo($"/escola/gerenciar/{Auth.EscolaId}", forceLoad: true);
+            }
+            else
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
             }
         }
-        catch (Exception ex)
+        else
         {
-            erroMensagem = ex.Message;
-            totalEscolas = 0;
-            escolasDTO = new List<EscolaDto>();
+            // Se não estiver logado, manda direto para a tela de login
+            Navigation.NavigateTo("/login", forceLoad: true);
         }
     }
-} *@
+}

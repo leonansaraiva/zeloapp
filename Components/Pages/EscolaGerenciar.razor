@@ -7,22 +7,22 @@
 @inject AuthStateService Auth
 @rendermode InteractiveServer
 
-<div class="container-fluid">
-    <!-- CABEÇALHO -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div class="container-fluid px-2 px-md-4 py-3">
+    <!-- CABEÇALHO RESPONSIVO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <span class="badge bg-success-subtle text-success fw-bold mb-1 px-3 py-1 rounded-pill">Painel Administrativo da Unidade</span>
-            <h2 class="fw-bold text-dark m-0">🏫 @escola.Nome</h2>
-            <p class="text-muted small m-0">Gestão financeira, turmas, alunos e credenciais do portal.</p>
+            <span class="badge bg-success-subtle text-success fw-bold mb-1 px-3 py-1 rounded-pill">Painel Administrativo</span>
+            <h2 class="fw-bold text-dark m-0 fs-3 fs-md-2">🏫 @escola.Nome</h2>
+            <p class="text-muted small m-0">Gestão financeira e turmas da unidade.</p>
         </div>
         <div class="d-flex gap-2">
             @if (Auth.TipoUsuario == "SuperAdmin")
             {
-                <button class="btn btn-outline-secondary rounded-3 px-3 fw-semibold shadow-sm" @onclick="VoltarSuperAdmin">
-                    ← Voltar ao Super Admin
+                <button class="btn btn-outline-secondary rounded-pill px-3 fw-semibold shadow-sm btn-sm" @onclick="VoltarSuperAdmin">
+                    ← Super Admin
                 </button>
             }
-            <button class="btn btn-primary rounded-3 px-3 fw-semibold shadow-sm" @onclick="AbrirModalNovaTurma">
+            <button class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm btn-sm" @onclick="AbrirModalNovaTurma">
                 + Nova Turma
             </button>
         </div>
@@ -30,26 +30,26 @@
 
     @if (!string.IsNullOrEmpty(mensagemSucesso))
     {
-        <div class="alert alert-success rounded-3 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+        <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
     }
 
-    <!-- BLOCO DE CREDENCIAIS & ALTERAÇÃO DE SENHA DO PORTAL -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 border-start border-primary border-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- BLOCO DE SENHA DO PORTAL -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-4 border-start border-primary border-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
-                <h5 class="fw-bold text-dark m-1">🔑 Credenciais de Acesso ao Portal da Unidade</h5>
-                <p class="text-muted small m-0">Login fixo: <code class="fw-bold text-dark">@escola.LoginPortal</code></p>
+                <h6 class="fw-bold text-dark mb-1">🔑 Senha do Portal da Unidade</h6>
+                <p class="text-muted small m-0">Login: <code class="fw-bold text-dark">@escola.LoginPortal</code></p>
             </div>
             <div>
                 @if (!editandoSenhaPortal)
                 {
-                    <button class="btn btn-outline-primary btn-sm rounded-3 px-3 fw-semibold" @onclick="() => editandoSenhaPortal = true">
-                        🔒 Alterar Senha do Portal
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold w-100 w-md-auto" @onclick="() => editandoSenhaPortal = true">
+                        🔒 Alterar Senha
                     </button>
                 }
                 else
                 {
-                    <button class="btn btn-outline-secondary btn-sm rounded-3 px-3" @onclick="() => editandoSenhaPortal = false">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 w-100 w-md-auto" @onclick="() => editandoSenhaPortal = false">
                         Cancelar
                     </button>
                 }
@@ -58,86 +58,59 @@
 
         @if (editandoSenhaPortal)
         {
-            <div class="row g-3 mt-3 pt-3 border-top align-items-end">
-                <div class="col-12 col-md-4">
-                    <label class="form-label small fw-semibold">Nova Senha do Portal</label>
-                    <input type="text" class="form-control rounded-3" @bind="novaSenhaPortal" placeholder="Digite a nova senha..." />
+            <div class="row g-2 mt-3 pt-3 border-top align-items-center">
+                <div class="col-12 col-md-6">
+                    <input type="text" class="form-control rounded-pill" @bind="novaSenhaPortal" placeholder="Nova senha..." />
                 </div>
                 <div class="col-12 col-md-3">
-                    <button class="btn btn-success rounded-3 px-4 fw-semibold w-100" @onclick="SalvarNovaSenhaPortal">
-                        💾 Salvar Nova Senha
+                    <button class="btn btn-success rounded-pill px-4 fw-semibold w-100 btn-sm" @onclick="SalvarNovaSenhaPortal">
+                        Salvar
                     </button>
                 </div>
             </div>
         }
     </div>
 
-    <!-- MÉTRICAS GERAIS -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4">
-                <small class="text-muted d-block fw-semibold">Receita Efetiva (Mês Atual)</small>
-                <span class="fs-4 fw-bold text-success">R$ @receitaEfetiva.ToString("N2")</span>
+    <!-- MÉTRICAS FINANCEIRAS (CARDS VERTICAIS NO MOBILE) -->
+    <div class="row g-2 g-md-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-success border-4">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Receita Efetiva</small>
+                <span class="fs-5 fs-md-4 fw-bold text-success">R$ @receitaEfetiva.ToString("N2")</span>
             </div>
         </div>
-        <div class="col-12 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4">
-                <small class="text-muted d-block fw-semibold">Previsão (Mês Atual)</small>
-                <span class="fs-4 fw-bold text-primary">R$ @pendenteMesAtual.ToString("N2")</span>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-primary border-4">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Previsão Mês</small>
+                <span class="fs-5 fs-md-4 fw-bold text-primary">R$ @pendenteMesAtual.ToString("N2")</span>
             </div>
         </div>
-        <div class="col-12 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-warning border-4">
-                <small class="text-muted d-block fw-semibold">Inadimplentes (Mês)</small>
-                <span class="fs-4 fw-bold text-warning">@inadimplentesAnterior alunos</span>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-warning border-4">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Inadimplentes</small>
+                <span class="fs-5 fs-md-4 fw-bold text-warning">@inadimplentesAnterior alunos</span>
             </div>
         </div>
-        <div class="col-12 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-info border-4">
-                <small class="text-muted d-block fw-semibold">Total de Alunos</small>
-                <span class="fs-4 fw-bold text-info">@totalAlunos ativos</span>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-info border-4">
+                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Total Alunos</small>
+                <span class="fs-5 fs-md-4 fw-bold text-info">@totalAlunos ativos</span>
             </div>
         </div>
     </div>
 
-    <!-- GRÁFICO: DEMONSTRATIVO FINANCEIRO MENSAL -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
-        <h5 class="fw-bold text-dark mb-1">📈 Demonstrativo Financeiro Mensal (Recebido vs. Inadimplência)</h5>
-        <p class="text-muted small mb-4">Visão acumulada de arrecadação e quantidade de não pagantes mês a mês</p>
-        
-        <div class="d-flex align-items-end justify-content-between gap-2 border-bottom pb-2" style="height: 180px;">
-            @foreach (var m in demonstrativoMensal)
-            {
-                var altura = maxCaixaGrafico > 0 ? (int)((m.TotalRecebido / maxCaixaGrafico) * 140) : 10;
-                <div class="d-flex flex-column align-items-center flex-grow-1">
-                    <span class="small fw-bold text-success mb-1" style="font-size: 0.55rem;">R$ @m.TotalRecebido.ToString("N0")</span>
-                    <div class="w-100 bg-light rounded-top d-flex flex-column justify-content-end align-items-center" style="height: 140px; max-width: 40px;">
-                        <span class="text-danger fw-bold mb-1" style="font-size: 0.5rem;" title="Inadimplentes">@(m.Inadimplentes > 0 ? $"{m.Inadimplentes}i" : "")</span>
-                        <div class="w-100 bg-success rounded-top" style="height: @Math.Max(altura, 5)px; transition: height 0.3s;"></div>
-                    </div>
-                </div>
-            }
-        </div>
-        <div class="d-flex justify-content-between text-muted small mt-2 px-1">
-            @foreach (var m in demonstrativoMensal)
-            {
-                <span style="font-size: 0.65rem; width: 40px; text-align: center;">@m.NomeMes.Substring(0, 3)</span>
-            }
-        </div>
-    </div>
-
-    <!-- LISTAGEM DE TURMAS -->
-    <h4 class="fw-bold text-dark mb-3">📁 Turmas da Unidade</h4>
+    <!-- LISTAGEM DE TURMAS (ESTILO CARDS TIPO TRELLO/APP NO MOBILE) -->
+    <h4 class="fw-bold text-dark mb-3 fs-5">📁 Turmas da Unidade</h4>
     @if (turmasList.Count == 0)
     {
-        <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
-            <p class="text-muted mb-3">Nenhuma turma cadastrada nesta unidade ainda.</p>
-            <button class="btn btn-primary rounded-3 px-4 mx-auto" @onclick="AbrirModalNovaTurma">+ Criar Primeira Turma</button>
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
+            <p class="text-muted mb-3 small">Nenhuma turma cadastrada nesta unidade.</p>
+            <button class="btn btn-primary rounded-pill px-4 mx-auto btn-sm" @onclick="AbrirModalNovaTurma">+ Criar Primeira Turma</button>
         </div>
     }
     else
     {
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-4">
             @foreach (var turma in turmasList)
             {
                 var alunosTurma = turma.Alunos ?? new();
@@ -146,24 +119,24 @@
                 int inadTurma = alunosTurma.Count(a => !a.MensalidadeMesPaga);
 
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column justify-content-between position-relative" style="cursor: pointer;" @onclick="() => AcessarTurma(turma.Id)">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white h-100 d-flex flex-column justify-content-between position-relative" style="cursor: pointer;" @onclick="() => AcessarTurma(turma.Id)">
                         <div>
-                            <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
-                                    <span class="badge bg-primary-subtle text-primary fw-bold px-2.5 py-1 rounded-pill mb-2">Turno: @turma.Turno</span>
-                                    <h4 class="fw-bold text-dark m-0">@turma.Nome</h4>
+                                    <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5 rounded-pill mb-1" style="font-size: 0.7rem;">Turno: @turma.Turno</span>
+                                    <h5 class="fw-bold text-dark m-0">@turma.Nome</h5>
                                     <small class="text-muted">👩‍🏫 @(string.IsNullOrEmpty(turma.ProfessorResponsavel) ? "Sem professora" : turma.ProfessorResponsavel)</small>
                                 </div>
                                 <span class="badge bg-light text-dark border px-2 py-1">@alunosTurma.Count alunos</span>
                             </div>
 
-                            <div class="bg-light p-3 rounded-3 mb-3 small">
+                            <div class="bg-light p-2.5 rounded-3 mb-3 small">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="text-muted">Recebido:</span>
                                     <span class="fw-bold text-success">R$ @recTurma.ToString("N2")</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-muted">Previsto / Mês:</span>
+                                    <span class="text-muted">Previsto:</span>
                                     <span class="fw-bold text-primary">R$ @prevTurma.ToString("N2")</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
@@ -173,8 +146,8 @@
                             </div>
                         </div>
 
-                        <button class="btn btn-outline-primary btn-sm rounded-3 w-100 fw-semibold mt-auto">
-                            Gerenciar Turma & Alunos →
+                        <button class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold mt-auto">
+                            Gerenciar Turma →
                         </button>
                     </div>
                 </div>
@@ -187,35 +160,35 @@
 @if (exibirModalNovaTurma)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered mx-3 mx-md-auto">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold">📁 Nova Turma</h5>
+                    <h5 class="modal-title fw-bold fs-6">📁 Nova Turma</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalNovaTurma = false"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Nome da Turma</label>
-                        <input type="text" class="form-control rounded-3" @bind="novaTurmaNome" placeholder="Ex: Maternal II" />
+                        <input type="text" class="form-control rounded-pill px-3" @bind="novaTurmaNome" placeholder="Ex: Maternal II" />
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Turno</label>
-                            <select class="form-select rounded-3" @bind="novoTurmaTurno">
+                            <select class="form-select rounded-pill px-3" @bind="novoTurmaTurno">
                                 <option value="Matutino">Matutino</option>
                                 <option value="Vespertino">Vespertino</option>
                                 <option value="Integral">Integral</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Professora Responsável</label>
-                            <input type="text" class="form-control rounded-3" @bind="novaTurmaProfessor" placeholder="Nome da prof(a)..." />
+                            <label class="form-label small fw-semibold">Professora</label>
+                            <input type="text" class="form-control rounded-pill px-3" @bind="novaTurmaProfessor" placeholder="Nome..." />
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-3 px-3 btn-sm" @onclick="() => exibirModalNovaTurma = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 btn-sm fw-semibold" @onclick="SalvarNovaTurma">Salvar Turma</button>
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalNovaTurma = false">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" @onclick="SalvarNovaTurma">Criar Turma</button>
                 </div>
             </div>
         </div>
@@ -231,7 +204,6 @@
     private decimal pendenteMesAtual = 0;
     private int inadimplentesAnterior = 0;
     private int totalAlunos = 0;
-    private decimal maxCaixaGrafico = 1000m;
     private string mensagemSucesso = string.Empty;
 
     private bool editandoSenhaPortal = false;
@@ -241,14 +213,6 @@
     private string novaTurmaNome = string.Empty;
     private string novoTurmaTurno = "Integral";
     private string novaTurmaProfessor = string.Empty;
-
-    public class MesFinanceiroItem
-    {
-        public string NomeMes { get; set; } = string.Empty;
-        public decimal TotalRecebido { get; set; }
-        public int Inadimplentes { get; set; }
-    }
-    private List<MesFinanceiroItem> demonstrativoMensal = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -274,9 +238,6 @@
         inadimplentesAnterior = 0;
         totalAlunos = 0;
 
-        decimal totalMensalBase = 0;
-        int totalInadimplentesBase = 0;
-
         foreach (var t in turmasList)
         {
             if (t.Alunos != null)
@@ -284,7 +245,6 @@
                 foreach (var a in t.Alunos)
                 {
                     totalAlunos++;
-                    totalMensalBase += a.ValorMensalidade;
                     if (a.MensalidadeMesPaga)
                     {
                         receitaEfetiva += a.ValorMensalidade;
@@ -293,36 +253,13 @@
                     {
                         pendenteMesAtual += a.ValorMensalidade;
                         inadimplentesAnterior++;
-                        totalInadimplentesBase++;
                     }
                 }
             }
         }
-
-        string[] meses = { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
-        demonstrativoMensal.Clear();
-        maxCaixaGrafico = 1000m;
-
-        int mesAtualIdx = DateTime.Now.Month - 1;
-        Random rnd = new Random(EscolaId);
-
-        for (int i = 0; i < meses.Length; i++)
-        {
-            decimal recMes = i <= mesAtualIdx ? (totalMensalBase * (decimal)(0.85 + (rnd.NextDouble() * 0.15))) : 0;
-            int inadMes = i <= mesAtualIdx ? rnd.Next(0, Math.Max(1, totalInadimplentesBase + 2)) : 0;
-            
-            if (recMes > maxCaixaGrafico) maxCaixaGrafico = recMes;
-
-            demonstrativoMensal.Add(new MesFinanceiroItem 
-            { 
-                NomeMes = meses[i], 
-                TotalRecebido = Math.Round(recMes, 2), 
-                Inadimplentes = inadMes 
-            });
-        }
     }
 
-    private async Task SalvarSenhaPortal()
+    private async Task SalvarNovaSenhaPortal()
     {
         if (!string.IsNullOrWhiteSpace(novaSenhaPortal))
         {
@@ -333,8 +270,6 @@
             mensagemSucesso = "Senha do portal alterada com sucesso!";
         }
     }
-
-    private async Task SalvarNovaSenhaPortal() => await SalvarSenhaPortal();
 
     private void AbrirModalNovaTurma() => exibirModalNovaTurma = true;
 
