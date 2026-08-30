@@ -89,3 +89,29 @@ html, body {
 #components-reconnect-modal.components-reconnect-show .show { display: block; }
 #components-reconnect-modal.components-reconnect-failed .failed { display: block; }
 #components-reconnect-modal.components-reconnect-rejected .rejected { display: block; }
+
+/* Ajuste para o menu mobile deslizar suavemente pela esquerda */
+.mobile-nav-overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.95);
+    z-index: 9999;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    animation: slideInLeft 0.25s ease-in-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
