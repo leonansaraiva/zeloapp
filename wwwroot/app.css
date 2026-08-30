@@ -91,27 +91,40 @@ html, body {
 #components-reconnect-modal.components-reconnect-rejected .rejected { display: block; }
 
 /* Ajuste para o menu mobile deslizar suavemente pela esquerda */
+/* Menu lateral deslizante em formato de gaveta (Drawer) */
 .mobile-nav-overlay {
     position: fixed;
-    top: 56px;
+    top: 0;
     left: 0;
-    right: 0;
     bottom: 0;
-    background-color: rgba(15, 23, 42, 0.95);
+    width: 300px; /* Largura fixa comportada, não ocupa a tela toda */
+    max-width: 85vw; /* Garante que não estoure em celulares pequenos */
+    background-color: #0f172a; /* Fundo escuro elegante */
     z-index: 9999;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.4);
     animation: slideInLeft 0.25s ease-in-out;
+}
+
+/* Fundo escuro translúcido que cobre o resto da tela */
+.mobile-nav-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9998;
+    backdrop-filter: blur(2px);
 }
 
 @keyframes slideInLeft {
     from {
         transform: translateX(-100%);
-        opacity: 0;
     }
     to {
         transform: translateX(0);
-        opacity: 1;
     }
 }
