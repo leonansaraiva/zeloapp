@@ -9,34 +9,36 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Configuração do Banco de Dados (SQLite)
+// Configuração do Banco de Dados (SQLite) com Caminho Absoluto na Raiz
+var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "zelo.db");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=zelo.db"));
+    options.UseSqlite($"Data Source={dbPath}"));
 
-// Seu serviço de autenticação
+// Serviços do sistema
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<DespesaService>();
 
 var app = builder.Build();
 
 // Executa o Seeder do banco ao iniciar
+// Executa as Migrations pendentes automaticamente ao iniciar
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(db);
+    db.Database.EnsureCreated(); // Cria o banco local sem exigir migrações travadas
+    DbSeeder.Seed(db);
 }
 
 // Configuração de ambiente para produção / Render
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // NÃO use app.UseHsts() ou UseHttpsRedirection() de forma agressiva no Render 
-    // se ele já faz o SSL Termination no proxy externo, ou ajuste assim:
 }
 
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-// 6. Mapeamento dos componentes Blazor (Essencial para as páginas funcionarem e evitar 404)
+// Mapeamento dos componentes Blazor
 app.MapRazorComponents<ZeloApp.Components.App>()
     .AddInteractiveServerRenderMode();
 

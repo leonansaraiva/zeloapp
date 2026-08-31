@@ -1,0 +1,129 @@
+@page "/superadmin/escola/nova"
+@rendermode InteractiveServer
+@using ZeloApp.Models
+@using ZeloApp.Services
+@inject AppDbContext Db
+@inject NavigationManager Navigation
+
+<PageTitle>Cadastrar Nova Escola</PageTitle>
+
+<div class="container py-4" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0">🏫 Cadastro de Nova Unidade Escolar</h3>
+            <p class="text-muted small m-0">Insira as informações institucionais, dados do gestor e parâmetros contratuais.</p>
+        </div>
+        <a href="/superadmin/escolas" class="btn btn-outline-secondary rounded-pill px-3">⬅ Voltar ao Painel</a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <EditForm Model="novaEscola" OnValidSubmit="SalvarEscola">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger rounded-4 small mb-4" />
+
+            <h5 class="fw-bold text-primary mb-3">1. Informações da Instituição</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold">Nome da Creche / Escola *</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.Nome" placeholder="Ex: Creche Recanto Infantil" @oninput="GerarLoginsautomaticos" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">CNPJ *</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.Cnpj" placeholder="00.000.000/0001-00" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold">Endereço Completo</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.Endereco" placeholder="Rua, Número, Bairro - Cidade/UF" />
+                </div>
+            </div>
+
+            <hr class="text-muted opacity-25 my-4">
+
+            <h5 class="fw-bold text-primary mb-3">2. Dados do Gestor / Diretor(a)</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Nome Completo do Gestor *</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.NomeGestor" placeholder="Nome do responsável..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">CPF do Gestor</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.CpfGestor" placeholder="000.000.000-00" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Telefone / WhatsApp *</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.TelefoneGestor" placeholder="(41) 99999-9999" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">E-mail Principal *</label>
+                    <InputText class="form-control rounded-pill" @bind-Value="novaEscola.EmailGestor" placeholder="direcao@escola.com" />
+                </div>
+            </div>
+
+            <hr class="text-muted opacity-25 my-4">
+
+            <h5 class="fw-bold text-primary mb-3">3. Contrato e Credenciais de Acesso</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Prazo de Contrato</label>
+                    <InputSelect class="form-select rounded-pill" @bind-Value="novaEscola.MesesContrato">
+                        <option value="12">12 Meses (Padrão)</option>
+                        <option value="24">24 Meses</option>
+                        <option value="6">6 Meses (Semestral)</option>
+                    </InputSelect>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Valor da Mensalidade SaaS (R$)</label>
+                    <InputNumber class="form-control rounded-pill" @bind-Value="novaEscola.ValorMensalidadePlataforma" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Login Admin Gerado</label>
+                    <InputText class="form-control rounded-pill bg-light" @bind-Value="novaEscola.LoginAdmin" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Senha Inicial do Admin</label>
+                    <InputText class="form-control rounded-pill bg-light" @bind-Value="novaEscola.SenhaAdmin" readonly />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="/superadmin/escolas" class="btn btn-light rounded-pill px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-semibold">Cadastrar Escola</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private Escola novaEscola = new()
+    {
+        MesesContrato = 12,
+        ValorMensalidadePlataforma = 450.00m,
+        SenhaAdmin = "123456",
+        SenhaPortal = "123456"
+    };
+
+    private void GerarLoginsautomaticos(ChangeEventArgs e)
+    {
+        var nome = e.Value?.ToString() ?? "";
+        if (!string.IsNullOrWhiteSpace(nome))
+        {
+            var limpo = new string(nome.Where(char.IsLetterOrDigit).ToArray()).ToLower();
+            if (limpo.Length > 8) limpo = limpo.Substring(0, 8);
+            novaEscola.LoginAdmin = $"admin_{limpo}";
+            novaEscola.LoginPortal = $"portal_{limpo}";
+        }
+    }
+
+    private async Task SalvarEscola()
+    {
+        if (string.IsNullOrWhiteSpace(novaEscola.LoginAdmin))
+        {
+            novaEscola.LoginAdmin = "admin_escola";
+        }
+
+        Db.Escolas.Add(novaEscola);
+        await Db.SaveChangesAsync();
+
+        Navigation.NavigateTo("/superadmin/escolas");
+    }
+}

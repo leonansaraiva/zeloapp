@@ -1,0 +1,93 @@
+@page "/escola/responsaveis"
+@rendermode InteractiveServer
+@using ZeloApp.Models
+@using ZeloApp.Services
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+
+<PageTitle>Todos os Responsáveis</PageTitle>
+
+<div class="container-fluid py-4 px-3 px-md-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold text-dark m-0">👥 Visão Geral de Responsáveis e Autorizados</h3>
+            <p class="text-muted small m-0">Lista unificada de todos os responsáveis cadastrados na escola.</p>
+        </div>
+        <div>
+            <input type="text" class="form-control rounded-pill px-4 shadow-sm" placeholder="🔍 Buscar por nome ou CPF..." @bind="termoBusca" @bind:event="oninput" style="width: 280px;" />
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Responsável / Autorizado</th>
+                        <th>Parentesco</th>
+                        <th>Contato / CPF</th>
+                        <th>Aluno Vinculado</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var resp in ResponsaveisFiltrados)
+                    {
+                        var nomeAluno = alunosDict.ContainsKey(resp.AlunoId ?? 0) ? alunosDict[resp.AlunoId ?? 0] : "Não vinculado";
+                        <tr>
+                            <td class="ps-3">
+                                <div class="fw-bold text-dark">@resp.NomeCompleto</div>
+                                <small class="text-muted">ID Reg: #@resp.Id</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">@resp.Parentesco</span></td>
+                            <td>
+                                <div>@resp.Telefone</div>
+                                <small class="text-muted">CPF: @resp.Cpf</small>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-primary">@nomeAluno</span>
+                            </td>
+                            <td>
+                                @if (resp.Temporario)
+                                {
+                                    <span class="badge bg-warning-subtle text-warning px-2 py-1 rounded-pill">⏱️ Temporário</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill">✅ Permanente</span>
+                                }
+                            </td>
+                            <td class="text-end pe-3">
+                                @if (resp.AlunoId.HasValue)
+                                {
+                                    <a href="/escola/aluno/@resp.AlunoId/responsaveis" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                                        Gerenciar →
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Responsavel> listaResponsaveis = new();
+    private Dictionary<int, string> alunosDict = new();
+    private string termoBusca = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaResponsaveis = await Db.Responsaveis.OrderBy(r => r.NomeCompleto).ToListAsync();
+        var alunos = await Db.Alunos.ToListAsync();
+        alunosDict = alunos.ToDictionary(a => a.Id, a => a.NomeCompleto);
+    }
+
+    private IEnumerable<Responsavel> ResponsaveisFiltrados => 
+        string.IsNullOrWhiteSpace(termoBusca) 
+            ? listaResponsaveis 
+            : listaResponsaveis.Where(r => r.NomeCompleto.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) || (!string.IsNullOrEmpty(r.Cpf) && r.Cpf.Contains(termoBusca)));
+}

@@ -58,13 +58,29 @@
                     @if (Auth.TipoUsuario == "SuperAdmin")
                     {
                         <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="/superadmin/escolas" Match="NavLinkMatch.All" @onclick="FecharMenu">
-                            🏫 Gestão de Escolas
+                            🏫 Gestão de Escolas (SaaS)
+                        </NavLink>
+                        
+                        <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="/despesas" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                            💸 Despesas do SaaS
                         </NavLink>
                     }
                     else if (Auth.EscolaId > 0)
                     {
                         <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="@($"/escola/gerenciar/{Auth.EscolaId}")" Match="NavLinkMatch.All" @onclick="FecharMenu">
                             📊 Painel da Unidade
+                        </NavLink>
+
+                        <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="@($"/escola/despesas/{Auth.EscolaId}")" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                            💸 Despesas da Unidade
+                        </NavLink>
+
+                        <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="/escola/alunos" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                            👶 Todos os Alunos (Global)
+                        </NavLink>
+
+                        <NavLink class="btn btn-light text-start fw-semibold rounded-pill px-4 py-2.5 text-dark shadow-sm" href="/escola/responsaveis" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                            👥 Todos os Responsáveis (Global)
                         </NavLink>
                     }
 

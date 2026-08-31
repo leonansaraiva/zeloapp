@@ -1,0 +1,228 @@
+@page "/despesas"
+@page "/escola/despesas/{EscolaId:int}"
+@rendermode InteractiveServer
+@using ZeloApp.Models
+@using ZeloApp.Services
+@inject DespesaService DespesaService
+@inject AuthStateService Auth
+
+<PageTitle>Controle de Despesas</PageTitle>
+
+<div class="container-fluid px-2 px-md-4 py-3">
+    <!-- Cabeçalho -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark m-0">💸 Gestão de Despesas</h3>
+            <p class="text-muted small m-0">Controle de custos mensais, pontuais e despesas parceladas (ex: domínio, servidor, manutenções).</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold" @onclick="AbrirModalCadastro">
+            + Nova Despesa
+        </button>
+    </div>
+
+    <!-- Filtros de Mês e Ano -->
+    <div class="mobile-card mb-4 p-3 bg-white">
+        <div class="row g-3 align-items-center">
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted">Mês de Referência</label>
+                <select class="form-select rounded-pill" @bind="filtroMes" @bind:after="CarregarDespesas">
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted">Ano</label>
+                <select class="form-select rounded-pill" @bind="filtroAno" @bind:after="CarregarDespesas">
+                    @for (int y = 2024; y <= 2030; y++)
+                    {
+                        <option value="@y">@y</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-6 text-md-end mt-4">
+                <span class="text-muted small d-block">Total de Despesas no Mês:</span>
+                <h4 class="fw-bold text-danger m-0">R$ @TotalDespesasMes.ToString("N2")</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Despesas (Estilo Mobile Card / Tabela Responsiva) -->
+    @if (listaDespesas == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!listaDespesas.Any())
+    {
+        <div class="text-center py-5 mobile-card bg-white text-muted">
+            <p class="mb-1">Nenhuma despesa registrada para este mês/ano.</p>
+            <small>Clique em "+ Nova Despesa" para adicionar.</small>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var item in listaDespesas)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="mobile-card h-100 bg-white p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-light text-dark border mb-1">@item.Categoria</span>
+                                <h5 class="fw-bold text-dark m-0">@item.Descricao</h5>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm border-0 rounded-circle" title="Excluir" @onclick="() => ExcluirDespesa(item.Id)">
+                                🗑️
+                            </button>
+                        </div>
+                        <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Vencimento / Competência:</small>
+                                <span class="fw-semibold">@item.DataCompetencia.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">Valor:</small>
+                                <span class="fw-bold text-danger fs-5">R$ @item.Valor.ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- MODAL DE CADASTRO DE DESPESA -->
+@if (exibirModal)
+{
+    <div class="mobile-nav-backdrop" @onclick="FecharModal"></div>
+    <div class="position-fixed top-50 start-50 translate-middle bg-white rounded-4 shadow-lg p-4" style="z-index: 10000; width: 90%; max-width: 500px;">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h5 class="fw-bold m-0">➕ Nova Despesa</h5>
+            <button class="btn btn-sm text-dark border-0 fs-4 p-0" @onclick="FecharModal">✕</button>
+        </div>
+
+        <EditForm Model="novaDespesa" OnValidSubmit="SalvarDespesa">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Descrição da Despesa</label>
+                <InputText class="form-control rounded-pill" @bind-Value="novaDespesa.Descricao" placeholder="Ex: Anuidade Domínio / Conserto Portão" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label small fw-bold">Valor (R$)</label>
+                    <InputNumber class="form-control rounded-pill" @bind-Value="valorInformado" placeholder="0,00" required />
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold">Categoria</label>
+                    <InputSelect class="form-select rounded-pill" @bind-Value="novaDespesa.Categoria">
+                        <option value="Infraestrutura / Servidor">Infraestrutura / Servidor</option>
+                        <option value="Manutenção / Reparos">Manutenção / Reparos</option>
+                        <option value="Pessoal / Salários">Pessoal / Salários</option>
+                        <option value="Impostos / Taxas">Impostos / Taxas</option>
+                        <option value="Outros">Outros</option>
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Mês/Ano Inicial de Competência</label>
+                <InputDate class="form-control rounded-pill" @bind-Value="novaDespesa.DataCompetencia" />
+            </div>
+
+            <!-- Opção de Parcelamento -->
+            <div class="mb-3 p-3 bg-light rounded-4 border">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="chkParcelado" @bind="ehParcelado" />
+                    <label class="form-check-label fw-semibold small" for="chkParcelado">Despesa Parcelada / Diluída (ex: Anual)</label>
+                </div>
+
+                @if (ehParcelado)
+                {
+                    <div class="mt-2">
+                        <label class="form-label small fw-bold">Número de Parcelas (Meses)</label>
+                        <InputNumber class="form-control rounded-pill" @bind-Value="totalParcelas" min="2" max="60" />
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                            O valor total informado será dividido igualmente e gerado mês a mês automaticamente.
+                        </small>
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" @onclick="FecharModal">Cancelar</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Salvar Despesa</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public int? EscolaId { get; set; }
+
+    private List<Despesa>? listaDespesas;
+    private Despesa novaDespesa = new();
+    private decimal valorInformado;
+    private int filtroMes = DateTime.Today.Month;
+    private int filtroAno = DateTime.Today.Year;
+    private bool exibirModal = false;
+    private bool ehParcelado = false;
+    private int totalParcelas = 12;
+
+    private decimal TotalDespesasMes => listaDespesas?.Sum(d => d.Valor) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDespesas();
+    }
+
+    private async Task CarregarDespesas()
+    {
+        listaDespesas = await DespesaService.ObterDespesasPorMesAsync(EscolaId, filtroMes, filtroAno);
+    }
+
+    private void AbrirModalCadastro()
+    {
+        novaDespesa = new Despesa
+        {
+            EscolaId = EscolaId,
+            DataCompetencia = DateTime.Today,
+            Categoria = "Infraestrutura / Servidor"
+        };
+        valorInformado = 0;
+        ehParcelado = false;
+        totalParcelas = 12;
+        exibirModal = true;
+    }
+
+    private void FecharModal()
+    {
+        exibirModal = false;
+    }
+
+    private async Task SalvarDespesa()
+    {
+        await DespesaService.SalvarDespesaAsync(novaDespesa, valorInformado, ehParcelado, totalParcelas);
+        exibirModal = false;
+        await CarregarDespesas();
+    }
+
+    private async Task ExcluirDespesa(int id)
+    {
+        await DespesaService.ExcluirAsync(id);
+        await CarregarDespesas();
+    }
+}
