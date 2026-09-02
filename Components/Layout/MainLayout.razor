@@ -1,15 +1,63 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
-<div class="d-flex flex-column vh-100 overflow-hidden bg-light">
-    <!-- Navbar fixa no topo que nunca some -->
-    <div class="flex-shrink-0">
-        <NavMenu />
-    </div>
-    
-    <!-- Miolo da aplicação com scroll interno controlado -->
-    <main class="flex-grow-1 overflow-y-auto w-100">
-        <article class="container-fluid px-3 px-md-4 py-4">
-            @Body
-        </article>
+<div class="page">
+    <!-- O NavMenu gerencia a barra de topo, o menu lateral e o backdrop -->
+    <NavMenu />
+
+    <!-- Conteúdo principal -->
+    <main>
+        <div class="content-wrapper">
+            <div class="content-inner">
+                @Body
+            </div>
+        </div>
     </main>
 </div>
+
+<style>
+    .page { 
+        position: relative; 
+        display: flex; 
+        flex-direction: column; 
+        min-height: 100vh; 
+        background: #f8fafc; 
+    }
+    
+    main { 
+        flex: 1; 
+        width: 100%; 
+        overflow-x: hidden; 
+        display: flex; 
+        flex-direction: column; 
+        min-height: 100vh; 
+    }
+
+    .content-wrapper { 
+        flex: 1; 
+        overflow-y: auto; 
+        overflow-x: hidden; 
+        padding: 0; 
+        background: #f8fafc; 
+    }
+    
+    .content-inner { 
+        padding: 16px; 
+        max-width: 1400px; 
+        margin: 0 auto; 
+    }
+
+    /* ESTILO DESKTOP */
+    @@media (min-width: 769px) {
+        .page { 
+            flex-direction: row; /* Coloca a sidebar lado a lado com o main */
+        }
+        main { 
+            margin-left: 280px; /* Compensa a largura da sidebar fixa */
+            width: calc(100% - 280px);
+        }
+        .content-inner { 
+            padding: 24px 28px; 
+        }
+    }
+</style>

@@ -1,63 +1,54 @@
-﻿@* NavMenu.razor *@
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 @using ZeloApp.Services
 @inject AuthStateService Auth
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
 @implements IDisposable
 
-<!-- TOP NAVBAR PRINCIPAL -->
-<nav class="main-navbar">
-    <div class="navbar-container">
-        <!-- BOTÃO HAMBÚRGUER -->
-        <button class="menu-toggle" @onclick="ToggleMenu" aria-label="Abrir menu">
-            <span class="hamburger-icon @(menuAberto ? "active" : "")">
-                <span></span>
-                <span></span>
-                <span></span>
-            </span>
-        </button>
-
-        <!-- LOGO / NOME -->
-        <a class="brand-logo" href="">
-            <span class="brand-icon">🛡️</span>
-            <span class="brand-name">ZeloApp</span>
-        </a>
-        
-        <!-- PERFIL RÁPIDO NO TOPO -->
+<!-- BARRA DE TOPO (Apenas visível no mobile, no desktop é ocultada) -->
+<div class="top-row mobile-only">
+    <button class="menu-toggle" @onclick="ToggleMenu" aria-label="Abrir menu">
+        <span class="hamburger-icon @(menuAberto ? "active" : "")">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+    </button>
+    <a href="/" class="brand-mobile">🛡️ ZeloApp</a>
+    <div class="top-row-right">
         @if (Auth.EstaAutenticado)
         {
-            <div class="user-badge">
+            <span class="user-badge">
                 <span class="user-avatar">👤</span>
                 <span class="user-name">@Auth.UsuarioNome</span>
-            </div>
+            </span>
         }
+        <a class="nav-link" href="/perfil">👤</a>
+        <a class="nav-link" href="/configuracoes">⚙️</a>
     </div>
-</nav>
+</div>
 
-<!-- GAVETA LATERAL -->
-<div class="mobile-nav-overlay @(menuAberto ? "open" : "")">
-    <!-- Backdrop -->
-    <div class="nav-backdrop" @onclick="FecharMenu"></div>
+<!-- BACKDROP ESCURO PARA MOBILE -->
+@if (menuAberto)
+{
+    <div class="sidebar-backdrop" @onclick="FecharMenu"></div>
+}
 
-    <!-- Painel Lateral -->
-    <div class="nav-drawer">
-        <!-- Cabeçalho -->
-        <div class="drawer-header">
-            <div class="drawer-title">
-                <span class="drawer-icon">🧭</span>
-                <span>Menu do Sistema</span>
-            </div>
-            <button class="close-drawer" @onclick="FecharMenu" aria-label="Fechar menu">
-                <span class="close-icon">✕</span>
-            </button>
-        </div>
+<!-- SIDEBAR / GAVETA LATERAL -->
+<aside class="sidebar @(menuAberto ? "open" : "")">
+    <div class="sidebar-brand">
+        <span class="brand-icon">🛡️</span>
+        <span class="brand-text">ZeloApp</span>
+        <span class="brand-version">v1.0</span>
+        <!-- BOTÃO DE FECHAR (X) EXCLUSIVO PARA MOBILE -->
+        <button class="close-sidebar-btn" @onclick="FecharMenu" aria-label="Fechar menu">
+            ✕
+        </button>
+    </div>
 
-        <!-- Conteúdo do Menu -->
-        <div class="drawer-content">
+    <div class="sidebar-scroll">
+        <div class="nav-menu-inner">
             @if (Auth.EstaAutenticado)
             {
-                <!-- Perfil -->
                 <div class="user-profile-card">
                     <div class="profile-avatar">👤</div>
                     <div class="profile-info">
@@ -67,17 +58,15 @@
                     </div>
                 </div>
 
-                <!-- Links do Menu -->
                 <div class="menu-links">
                     @if (Auth.TipoUsuario == "SuperAdmin")
                     {
-                        <NavLink class="menu-link" href="/superadmin/escolas" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="/superadmin/escolas" Match="NavLinkMatch.All">
                             <span class="menu-icon">🏫</span>
-                            <span class="menu-text">Gestão de Escolas (SaaS)</span>
+                            <span class="menu-text">Gestão de Escolas</span>
                             <span class="menu-arrow">→</span>
                         </NavLink>
-                        
-                        <NavLink class="menu-link" href="/despesas" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="/despesas" Match="NavLinkMatch.All">
                             <span class="menu-icon">💸</span>
                             <span class="menu-text">Despesas do SaaS</span>
                             <span class="menu-arrow">→</span>
@@ -85,31 +74,27 @@
                     }
                     else if (Auth.EscolaId > 0)
                     {
-                        <NavLink class="menu-link" href="@($"/escola/gerenciar/{Auth.EscolaId}")" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="@($"/escola/gerenciar/{Auth.EscolaId}")" Match="NavLinkMatch.All">
                             <span class="menu-icon">📊</span>
                             <span class="menu-text">Painel da Unidade</span>
                             <span class="menu-arrow">→</span>
                         </NavLink>
-
-                        <NavLink class="menu-link" href="@($"/escola/despesas/{Auth.EscolaId}")" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="@($"/escola/despesas/{Auth.EscolaId}")" Match="NavLinkMatch.All">
                             <span class="menu-icon">💸</span>
                             <span class="menu-text">Despesas da Unidade</span>
                             <span class="menu-arrow">→</span>
                         </NavLink>
-
-                        <NavLink class="menu-link" href="/escola/alunos" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="/escola/alunos" Match="NavLinkMatch.All">
                             <span class="menu-icon">👶</span>
-                            <span class="menu-text">Todos os Alunos (Global)</span>
+                            <span class="menu-text">Todos os Alunos</span>
                             <span class="menu-arrow">→</span>
                         </NavLink>
-
-                        <NavLink class="menu-link" href="/escola/responsaveis" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="/escola/responsaveis" Match="NavLinkMatch.All">
                             <span class="menu-icon">👥</span>
-                            <span class="menu-text">Todos os Responsáveis (Global)</span>
+                            <span class="menu-text">Responsáveis</span>
                             <span class="menu-arrow">→</span>
                         </NavLink>
-
-                        <NavLink class="menu-link" href="/escola/professores" Match="NavLinkMatch.All" @onclick="FecharMenu">
+                        <NavLink class="menu-link" href="/escola/professores" Match="NavLinkMatch.All">
                             <span class="menu-icon">👩‍🏫</span>
                             <span class="menu-text">Professoras</span>
                             <span class="menu-arrow">→</span>
@@ -117,7 +102,6 @@
                     }
                 </div>
 
-                <!-- Botão Sair -->
                 <div class="drawer-footer">
                     <button class="logout-btn" @onclick="FazerLogout">
                         <span class="logout-icon">🚪</span>
@@ -131,871 +115,122 @@
                 <div class="auth-placeholder">
                     <div class="auth-icon">🔐</div>
                     <p class="auth-message">Você não está autenticado no momento.</p>
-                    <NavLink class="login-btn" href="/login" @onclick="FecharMenu">
+                    <NavLink class="login-btn" href="/login">
                         <span class="login-icon">🔑</span>
                         <span class="login-text">Fazer Login</span>
                     </NavLink>
                 </div>
             }
         </div>
-
-        <!-- Rodapé do Drawer -->
-        <div class="drawer-bottom">
-            <span class="drawer-version">v1.0.0</span>
-            <span class="drawer-copy">© 2026 ZeloApp</span>
-        </div>
     </div>
-</div>
+
+    <div class="sidebar-footer-brand">
+        <span class="footer-copy">© 2026 ZeloApp</span>
+    </div>
+</aside>
 
 <style>
-    /* ========== RESET E BASE ========== */
-    .main-navbar {
-        position: sticky;
-        top: 0;
-        z-index: 1050;
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-        height: 64px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-        transition: height 0.3s ease;
-    }
+    /* TOP ROW & HAMBURGER (MOBILE) */
+    .top-row { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.1); justify-content: space-between; height: 64px; display: flex; align-items: center; padding: 0 16px; position: sticky; top: 0; z-index: 1030; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); flex-shrink: 0; width: 100%; }
+    .menu-toggle { background: transparent; border: none; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; transition: all 0.2s ease; color: white; flex-shrink: 0; }
+    .menu-toggle:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+    
+    .hamburger-icon { display: flex; flex-direction: column; gap: 4.5px; width: 22px; transition: all 0.3s ease; }
+    .hamburger-icon span { display: block; height: 2.5px; background: white; border-radius: 2px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+    .hamburger-icon.active span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 4.5px); }
+    .hamburger-icon.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger-icon.active span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
+    
+    .brand-mobile { color: white; text-decoration: none; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-right: auto; margin-left: 8px; }
+    .top-row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .user-badge { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.15); padding: 4px 12px 4px 8px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); margin-right: 4px; }
+    .user-avatar { font-size: 1.1rem; }
+    .user-name { color: white; font-size: 0.8rem; font-weight: 500; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+    .nav-link { color: rgba(255, 255, 255, 0.8); text-decoration: none; padding: 6px 8px; border-radius: 8px; font-size: 1.1rem; }
 
-    .navbar-container {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 0 16px;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    /* ========== HAMBURGER MENU ========== */
-    .menu-toggle {
-        background: transparent;
-        border: none;
-        padding: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        flex-shrink: 0;
-        position: relative;
-    }
-
-    .menu-toggle:hover {
-        background: rgba(255, 255, 255, 0.12);
-        transform: scale(1.05);
-    }
-
-    .menu-toggle:active {
-        transform: scale(0.95);
-    }
-
-    .hamburger-icon {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        width: 24px;
-        transition: all 0.3s ease;
-    }
-
-    .hamburger-icon span {
-        display: block;
-        height: 2.5px;
-        background: white;
-        border-radius: 2px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        transform-origin: center;
-    }
-
-    .hamburger-icon.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-    }
-
-    .hamburger-icon.active span:nth-child(2) {
-        opacity: 0;
-        transform: scaleX(0);
-    }
-
-    .hamburger-icon.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(5px, -5px);
-    }
-
-    /* ========== BRAND ========== */
-    .brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: white;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 1.25rem;
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    .brand-logo:hover {
-        opacity: 0.9;
-        color: white;
-        transform: scale(1.02);
-    }
-
-    .brand-icon {
-        font-size: 1.5rem;
-        display: inline-block;
-        animation: pulse 2s infinite ease-in-out;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .brand-name {
-        font-size: 1.1rem;
-        letter-spacing: 0.5px;
-    }
-
-    /* ========== USER BADGE ========== */
-    .user-badge {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.15);
-        padding: 4px 12px 4px 8px;
-        border-radius: 50px;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        margin-left: auto;
-        flex-shrink: 0;
-        transition: all 0.3s ease;
-    }
-
-    .user-badge:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.02);
-    }
-
-    .user-avatar {
-        font-size: 1.1rem;
-    }
-
-    .user-name {
-        color: white;
-        font-size: 0.8rem;
-        font-weight: 500;
-        white-space: nowrap;
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* ========== MOBILE NAV OVERLAY ========== */
-    .mobile-nav-overlay {
+    /* SIDEBAR / GAVETA */
+    .sidebar {
+        background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1060;
-        pointer-events: none;
-        visibility: hidden;
-        transition: visibility 0.3s ease;
-    }
-
-    .mobile-nav-overlay.open {
-        pointer-events: auto;
-        visibility: visible;
-    }
-
-    .nav-backdrop {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .open .nav-backdrop {
-        opacity: 1;
-    }
-
-    /* ========== DRAWER ========== */
-    .nav-drawer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 320px;
-        max-width: 85vw;
-        background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 50%, #1a365d 100%);
-        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
+        top: 0; left: 0; bottom: 0;
+        width: 280px;
+        z-index: 1040;
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        color: white;
         overflow: hidden;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .open .nav-drawer {
-        transform: translateX(0);
-        animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    @@keyframes slideIn {
-        from {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    /* ========== DRAWER HEADER ========== */
-    .drawer-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    .drawer-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #60a5fa, #93c5fd);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .drawer-icon {
-        font-size: 1.3rem;
-        -webkit-text-fill-color: initial;
-    }
-
-    .close-drawer {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
         color: white;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        opacity: 0.7;
     }
+    .sidebar.open { transform: translateX(0) !important; }
 
-    .close-drawer:hover {
-        background: rgba(255, 255, 255, 0.15);
-        opacity: 1;
-        transform: rotate(90deg);
-    }
-
-    .close-drawer:active {
-        transform: rotate(90deg) scale(0.9);
-    }
-
-    .close-icon {
-        line-height: 1;
-    }
-
-    /* ========== DRAWER CONTENT ========== */
-    .drawer-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px 20px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .drawer-content::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .drawer-content::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .drawer-content::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-    }
-
-    .drawer-content::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-    /* ========== USER PROFILE CARD ========== */
-    .user-profile-card {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        background: rgba(255, 255, 255, 0.06);
-        padding: 16px 18px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        flex-shrink: 0;
-        backdrop-filter: blur(4px);
-        transition: all 0.3s ease;
-    }
-
-    .user-profile-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateY(-2px);
-    }
-
-    .profile-avatar {
-        font-size: 2rem;
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); flex-shrink: 0; background: rgba(255, 255, 255, 0.02); }
+    .brand-icon { font-size: 1.8rem; }
+    .brand-text { font-size: 1.2rem; font-weight: 700; color: white; }
+    .brand-version { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05); padding: 2px 10px; border-radius: 50px; font-weight: 600; }
+    
+    .close-sidebar-btn {
         background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        flex-shrink: 0;
-        border: 2px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .profile-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .profile-label {
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.5;
-        font-weight: 600;
-        margin-bottom: 2px;
-    }
-
-    .profile-name {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 1rem;
-        font-weight: 700;
-        margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .profile-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #3b82f6, #60a5fa);
-        color: white;
-        font-size: 0.6rem;
-        font-weight: 600;
-        padding: 2px 12px;
-        border-radius: 50px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    }
-
-    /* ========== MENU LINKS ========== */
-    .menu-links {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        flex: 1;
-    }
-
-    .menu-link {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 16px;
-        color: rgba(255, 255, 255, 0.75);
-        text-decoration: none;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-        font-weight: 500;
-        font-size: 0.9rem;
-        background: transparent;
-        border: none;
         cursor: pointer;
-        width: 100%;
-        position: relative;
+        margin-left: auto;
+        transition: background 0.2s;
     }
+    .close-sidebar-btn:hover { background: rgba(255, 255, 255, 0.25); }
+    
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .nav-menu-inner { display: flex; flex-direction: column; gap: 16px; padding: 4px 12px 16px 12px; }
 
-    .menu-link::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%) scaleY(0);
-        width: 3px;
-        height: 60%;
-        background: linear-gradient(180deg, #60a5fa, #3b82f6);
-        border-radius: 0 4px 4px 0;
-        transition: transform 0.3s ease;
-    }
+    .user-profile-card { display: flex; align-items: center; gap: 14px; background: rgba(255, 255, 255, 0.06); padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.06); color: white; }
+    .profile-avatar { font-size: 1.8rem; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.1); border-radius: 50%; }
+    .profile-info { flex: 1; }
+    .profile-label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.5; font-weight: 600; margin-bottom: 2px; }
+    .profile-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .profile-badge { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; font-size: 0.6rem; font-weight: 600; padding: 2px 10px; border-radius: 50px; text-transform: uppercase; }
 
-    .menu-link:hover::before,
-    .menu-link.active::before {
-        transform: translateY(-50%) scaleY(1);
-    }
+    .menu-links { display: flex; flex-direction: column; gap: 4px; }
+    .menu-link { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: rgba(255, 255, 255, 0.75); text-decoration: none; border-radius: 12px; transition: all 0.2s ease; font-weight: 500; font-size: 0.9rem; }
+    .menu-link:hover { background: rgba(255, 255, 255, 0.08); color: white; }
+    .menu-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+    .menu-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+    .menu-text { flex: 1; }
+    .menu-arrow { opacity: 0; transition: all 0.3s ease; font-size: 0.9rem; }
+    .menu-link:hover .menu-arrow { opacity: 1; }
 
-    .menu-link:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: white;
-        transform: translateX(4px);
-    }
+    .drawer-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+    .logout-btn { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 16px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .logout-btn:hover { background: rgba(239, 68, 68, 0.2); color: white; }
+    .logout-icon { font-size: 1.1rem; }
+    .logout-text { flex: 1; text-align: left; }
 
-    .menu-link.active {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
+    .sidebar-footer-brand { padding: 12px 24px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); text-align: center; font-size: 0.65rem; color: rgba(255, 255, 255, 0.2); }
+    .footer-copy { opacity: 0.5; }
 
-    .menu-icon {
-        font-size: 1.1rem;
-        flex-shrink: 0;
-        width: 28px;
-        text-align: center;
-    }
+    .sidebar-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 1035; }
 
-    .menu-text {
-        flex: 1;
-    }
-
-    .menu-arrow {
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-    }
-
-    .menu-link:hover .menu-arrow,
-    .menu-link.active .menu-arrow {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    /* ========== DRAWER FOOTER ========== */
-    .drawer-footer {
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        padding-top: 12px;
-        flex-shrink: 0;
-        margin-top: 4px;
-    }
-
-    .logout-btn {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        width: 100%;
-        padding: 12px 16px;
-        background: rgba(239, 68, 68, 0.12);
-        color: #fca5a5;
-        border: 1px solid rgba(239, 68, 68, 0.15);
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .logout-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.1), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .logout-btn:hover::before {
-        left: 100%;
-    }
-
-    .logout-btn:hover {
-        background: rgba(239, 68, 68, 0.2);
-        color: white;
-        border-color: rgba(239, 68, 68, 0.3);
-        transform: scale(1.02);
-    }
-
-    .logout-btn:active {
-        transform: scale(0.98);
-    }
-
-    .logout-icon {
-        font-size: 1.1rem;
-        flex-shrink: 0;
-    }
-
-    .logout-text {
-        flex: 1;
-        text-align: left;
-    }
-
-    .logout-arrow {
-        transition: transform 0.3s ease;
-        font-size: 0.9rem;
-    }
-
-    .logout-btn:hover .logout-arrow {
-        transform: translateX(4px);
-    }
-
-    /* ========== AUTH PLACEHOLDER ========== */
-    .auth-placeholder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        gap: 16px;
-        text-align: center;
-        padding: 20px 0;
-    }
-
-    .auth-icon {
-        font-size: 3rem;
-        opacity: 0.5;
-    }
-
-    .auth-message {
-        opacity: 0.6;
-        font-size: 0.9rem;
-        margin: 0;
-        max-width: 200px;
-    }
-
-    .login-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 32px;
-        background: linear-gradient(135deg, #3b82f6, #60a5fa);
-        color: white;
-        text-decoration: none;
-        border-radius: 50px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-        border: none;
-        cursor: pointer;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .login-btn:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
-        color: white;
-    }
-
-    .login-btn:active {
-        transform: scale(0.98);
-    }
-
-    .login-icon {
-        font-size: 1.1rem;
-    }
-
-    .login-text {
-        font-size: 0.95rem;
-    }
-
-    /* ========== DRAWER BOTTOM ========== */
-    .drawer-bottom {
-        padding: 12px 24px 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-shrink: 0;
-        font-size: 0.65rem;
-        opacity: 0.3;
-        letter-spacing: 0.3px;
-    }
-
-    .drawer-version {
-        font-weight: 600;
-    }
-
-    .drawer-copy {
-        font-weight: 400;
-    }
-
-    /* ========== RESPONSIVO ========== */
-    /* DESKTOP */
-    @@media (min-width: 1024px) {
-        .main-navbar {
-            height: 72px;
+    /* AJUSTES PARA DESKTOP */
+    @@media (min-width: 769px) {
+        .top-row.mobile-only { display: none !important; } /* Some com a barra superior no PC */
+        .sidebar { 
+            transform: translateX(0) !important; 
+            position: fixed; 
+            height: 100vh; 
+            top: 0; 
+            left: 0;
+            width: 280px;
         }
-
-        .navbar-container {
-            padding: 0 32px;
-        }
-
-        .brand-name {
-            font-size: 1.3rem;
-        }
-
-        .brand-icon {
-            font-size: 1.7rem;
-        }
-
-        .user-name {
-            max-width: 200px;
-            font-size: 0.9rem;
-        }
-
-        .nav-drawer {
-            width: 380px;
-            max-width: 30vw;
-            box-shadow: 8px 0 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .drawer-header {
-            padding: 24px 28px 20px;
-        }
-
-        .drawer-content {
-            padding: 24px 24px 20px;
-            gap: 16px;
-        }
-
-        .menu-link {
-            padding: 14px 20px;
-            font-size: 0.95rem;
-            border-radius: 14px;
-        }
-
-        .menu-link:hover {
-            transform: translateX(6px);
-        }
-
-        .user-profile-card {
-            padding: 20px 22px;
-        }
-
-        .profile-avatar {
-            width: 52px;
-            height: 52px;
-            font-size: 2.2rem;
-        }
-
-        .profile-name {
-            font-size: 1.1rem;
-        }
-
-        .logout-btn {
-            padding: 14px 20px;
-            font-size: 0.95rem;
-        }
-
-        .drawer-bottom {
-            padding: 14px 28px 20px;
-            font-size: 0.7rem;
-        }
-    }
-
-    /* TABLET */
-    @@media (min-width: 768px) and (max-width: 1023px) {
-        .nav-drawer {
-            width: 340px;
-        }
-
-        .brand-name {
-            font-size: 1.2rem;
-        }
-    }
-
-    /* MOBILE */
-    @@media (max-width: 767px) {
-        .main-navbar {
-            height: 56px;
-        }
-
-        .navbar-container {
-            padding: 0 12px;
-            gap: 8px;
-        }
-
-        .brand-icon {
-            font-size: 1.2rem;
-        }
-
-        .brand-name {
-            font-size: 0.95rem;
-        }
-
-        .user-name {
-            max-width: 80px;
-            font-size: 0.7rem;
-        }
-
-        .user-badge {
-            padding: 2px 10px 2px 6px;
-        }
-
-        .user-avatar {
-            font-size: 0.9rem;
-        }
-
-        .nav-drawer {
-            width: 290px;
-            max-width: 90vw;
-        }
-
-        .drawer-header {
-            padding: 16px 20px 14px;
-        }
-
-        .drawer-title {
-            font-size: 1rem;
-        }
-
-        .drawer-content {
-            padding: 16px 16px 12px;
-            gap: 10px;
-        }
-
-        .menu-link {
-            padding: 10px 14px;
-            font-size: 0.85rem;
-            border-radius: 10px;
-        }
-
-        .menu-icon {
-            font-size: 1rem;
-            width: 24px;
-        }
-
-        .user-profile-card {
-            padding: 12px 14px;
-            gap: 12px;
-        }
-
-        .profile-avatar {
-            width: 40px;
-            height: 40px;
-            font-size: 1.6rem;
-        }
-
-        .profile-name {
-            font-size: 0.9rem;
-        }
-
-        .profile-badge {
-            font-size: 0.55rem;
-        }
-
-        .logout-btn {
-            padding: 10px 14px;
-            font-size: 0.85rem;
-        }
-
-        .drawer-bottom {
-            padding: 10px 20px 14px;
-            font-size: 0.6rem;
-        }
-
-        .login-btn {
-            padding: 12px 24px;
-            font-size: 0.9rem;
-        }
-    }
-
-    /* MOBILE PEQUENO */
-    @@media (max-width: 380px) {
-        .nav-drawer {
-            width: 260px;
-            max-width: 92vw;
-        }
-
-        .brand-name {
-            font-size: 0.85rem;
-        }
-
-        .user-name {
-            max-width: 60px;
-            font-size: 0.65rem;
-        }
-
-        .menu-link {
-            padding: 8px 12px;
-            font-size: 0.8rem;
-        }
-
-        .menu-icon {
-            font-size: 0.9rem;
-            width: 22px;
-        }
-
-        .drawer-header {
-            padding: 14px 16px 12px;
-        }
-
-        .drawer-content {
-            padding: 12px 12px 10px;
-        }
-    }
-
-    /* ========== ACESSIBILIDADE ========== */
-    .menu-toggle:focus-visible,
-    .close-drawer:focus-visible,
-    .menu-link:focus-visible,
-    .logout-btn:focus-visible,
-    .login-btn:focus-visible {
-        outline: 2px solid #60a5fa;
-        outline-offset: 2px;
-    }
-
-    @@media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-        }
-
-        .open .nav-drawer {
-            animation: none !important;
-        }
-
-        .brand-icon {
-            animation: none !important;
-        }
-    }
-
-    /* ========== PREVENT SCROLL ========== */
-    body.nav-open {
-        overflow: hidden;
+        .sidebar-backdrop { display: none; }
+        .close-sidebar-btn { display: none; } /* Esconde o botão X no PC */
     }
 </style>
 
@@ -1005,48 +240,32 @@
     protected override void OnInitialized()
     {
         Auth.OnChange += StateHasChanged;
+        Navigation.LocationChanged += OnLocationChanged;
     }
 
     public void Dispose()
     {
         Auth.OnChange -= StateHasChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (menuAberto)
+        {
+            menuAberto = false;
+            StateHasChanged();
+        }
     }
 
     private void ToggleMenu()
     {
         menuAberto = !menuAberto;
-        _ = AtualizarBodyScroll();
-    }
-
-    private void AbrirMenu()
-    {
-        menuAberto = true;
-        _ = AtualizarBodyScroll();
     }
 
     private void FecharMenu()
     {
         menuAberto = false;
-        _ = AtualizarBodyScroll();
-    }
-
-    private async Task AtualizarBodyScroll()
-    {
-        try
-        {
-            if (menuAberto)
-            {
-                await JSRuntime.InvokeVoidAsync("document.body.classList.add", "nav-open");
-            }
-            else
-            {
-                await JSRuntime.InvokeVoidAsync("document.body.classList.remove", "nav-open");
-            }
-        }
-        catch
-        {
-            // Ignora erros de JavaScript
-        }
     }
 
     private void FazerLogout()
