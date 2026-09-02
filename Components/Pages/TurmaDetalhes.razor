@@ -1,30 +1,32 @@
 @page "/escola/turma/{TurmaId:int}"
+@rendermode InteractiveServer
 @using ZeloApp.Models
 @using ZeloApp.Services
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext Db
 @inject NavigationManager Navigation
-@inject AuthStateService Auth
 @inject IJSRuntime JS
-@rendermode InteractiveServer
 
-<div class="container-fluid px-2 px-md-4 py-3">
-    <!-- CABEÇALHO DA TURMA -->
+<PageTitle>Gerenciar Turma: @turma.Nome</PageTitle>
+
+<div class="container-fluid px-3 px-md-4 py-3">
+    <!-- CABEÇALHO -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2" @onclick="VoltarPainelEscola">← Voltar para a Unidade</button>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h2 class="fw-bold text-dark m-0 fs-3">📁 Turma: @turma.Nome</h2>
-                <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill">Turno: @turma.Turno</span>
+                <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-1 rounded-pill">Turno: @turma.Turno</span>
             </div>
-            <p class="text-muted small m-0 mt-1">👩‍🏫 Professora Responsável: <strong class="text-dark">@(string.IsNullOrEmpty(turma.ProfessorResponsavel) ? "Não definida" : turma.ProfessorResponsavel)</strong></p>
+            <p class="text-muted small m-0 mt-1">
+                📅 Vigência: <strong>@(turma.DataInicioVigencia?.ToString("dd/MM/yyyy") ?? "-")</strong> até <strong>@(turma.DataFimVigencia?.ToString("dd/MM/yyyy") ?? "-")</strong>
+            </p>
         </div>
-<!-- AGORA (Direciona para a tela dedicada que criamos): -->
-<div>
-    <a href="/escola/turma/@turma.Id/matricular" class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm btn-sm text-decoration-none">
-        + Matricular Aluno na Turma
-    </a>
-</div>
+        <div class="d-flex gap-2">
+            <a href="/escola/turma/@turma.Id/matricular" class="btn btn-primary rounded-pill px-3 fw-semibold shadow-sm btn-sm text-decoration-none">
+                + Matricular Aluno
+            </a>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(mensagemSucesso))
@@ -32,427 +34,182 @@
         <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
     }
 
-    <!-- MÉTRICAS DA TURMA -->
-    <div class="row g-2 g-md-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-success border-4 h-100">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Receita Efetiva da Turma</small>
-                <span class="fs-5 fs-md-4 fw-bold text-success">R$ @receitaEfetivaTurma.ToString("N2")</span>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-primary border-4 h-100">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Previsão Total da Turma</small>
-                <span class="fs-5 fs-md-4 fw-bold text-primary">R$ @receitaPrevisaoTurma.ToString("N2")</span>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-danger border-4 h-100">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Inadimplentes na Turma</small>
-                <span class="fs-5 fs-md-4 fw-bold text-danger">@inadimplentesTurma alunos</span>
-            </div>
-        </div>
-    </div>
+    <!-- ABAS DE NAVEGAÇÃO DA TURMA -->
+    <ul class="nav nav-pills gap-2 mb-4">
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4 fw-semibold @(abaAtiva == "alunos" ? "active bg-primary text-white" : "bg-white text-dark border")" @onclick='() => abaAtiva = "alunos"'>
+                👶 Alunos Matriculados (@(turma.Alunos?.Count ?? 0))
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4 fw-semibold @(abaAtiva == "planejamento" ? "active bg-primary text-white" : "bg-white text-dark border")" @onclick='() => abaAtiva = "planejamento"'>
+                📝 Planejamento & Vigência
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4 fw-semibold @(abaAtiva == "historico" ? "active bg-primary text-white" : "bg-white text-dark border")" @onclick='() => abaAtiva = "historico"'>
+                📜 Histórico / Auditoria
+            </button>
+        </li>
+    </ul>
 
-    <!-- LISTA DE ALUNOS -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
-        <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold text-dark m-0 fs-6">👶 Alunos Matriculados</h5>
-            <span class="badge bg-secondary rounded-pill px-3 py-1">@(turma.Alunos?.Count ?? 0) alunos</span>
-        </div>
-        
-        @if (turma.Alunos == null || turma.Alunos.Count == 0)
-        {
-            <div class="text-center p-5">
-                <p class="text-muted small">Nenhum aluno matriculado nesta turma ainda.</p>
-                <button class="btn btn-primary btn-sm rounded-pill px-3" @onclick="AbrirModalNovoAluno">+ Adicionar Primeiro Aluno</button>
+    <!-- CONTEÚDO DA ABA: ALUNOS -->
+    @if (abaAtiva == "alunos")
+    {
+        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
+            <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark m-0 fs-6">Alunos da Turma</h5>
+                <span class="badge bg-secondary rounded-pill px-3 py-1">Total: @(turma.Alunos?.Count ?? 0)</span>
             </div>
-        }
-        else
-        {
-            <!-- VISÃO DE TABELA PARA DESKTOP -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table align-middle mb-0 small">
-                    <thead class="table-light text-secondary uppercase">
-                        <tr>
-                            <th class="ps-3">Aluno(a)</th>
-                            <th>Vínculo</th>
-                            <th>Turno</th>
-                            <th>Responsável</th>
-                            <th>Mensalidade</th>
-                            <th class="text-end pe-3">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var aluno in turma.Alunos)
-                        {
+
+            @if (turma.Alunos == null || turma.Alunos.Count == 0)
+            {
+                <div class="text-center p-5">
+                    <p class="text-muted small">Nenhum aluno matriculado nesta turma ainda.</p>
+                    <a href="/escola/turma/@turma.Id/matricular" class="btn btn-primary btn-sm rounded-pill px-3 text-decoration-none">+ Matricular Primeiro Aluno</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 small">
+                        <thead class="table-light text-secondary">
                             <tr>
-                                <td class="ps-3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" />
-                                        <span class="fw-bold text-dark">@aluno.NomeCompleto</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if (aluno.Vinculo == "Prefeitura")
-                                    {
-                                        <span class="badge bg-info-subtle text-info px-2 py-0.5 rounded-pill fw-semibold">Prefeitura</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-dark px-2 py-0.5 rounded-pill fw-semibold">Particular</span>
-                                    }
-                                </td>
-                                <td><span class="badge bg-light text-dark border px-2 py-0.5 fw-semibold">@aluno.Turno</span></td>
-                                <td>
-                                    <div class="text-dark">@(aluno.Responsavel?.NomeCompleto ?? "Não informado")</div>
-                                    <small class="text-muted" style="font-size: 0.7rem;">@(aluno.Responsavel?.Telefone ?? "-")</small>
-                                </td>
-                                <td><span class="fw-bold text-success">R$ @aluno.Mensalidade.ToString("N2")</span></td>
-                                <td class="text-end pe-3">
-                                    <button class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1" style="font-size: 0.75rem;" @onclick="() => AbrirModalFicha(aluno)">
-                                        Gerenciar →
-                                    </button>
-                                </td>
+                                <th class="ps-3">Aluno(a)</th>
+                                <th>Vínculo</th>
+                                <th>Turno</th>
+                                <th>Responsável</th>
+                                <th>Mensalidade</th>
+                                <th class="text-end pe-3">Ações</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach (var aluno in turma.Alunos)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" />
+                                            <span class="fw-bold text-dark">@aluno.NomeCompleto</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(aluno.Vinculo == "Prefeitura" ? "bg-info-subtle text-info" : "bg-secondary-subtle text-dark") px-2 py-0.5 rounded-pill fw-semibold">
+                                            @aluno.Vinculo
+                                        </span>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border px-2 py-0.5">@aluno.Turno</span></td>
+                                    <td>
+                                        <div class="text-dark">@(aluno.Responsavel?.NomeCompleto ?? "Não informado")</div>
+                                        <small class="text-muted">@(aluno.Responsavel?.Telefone ?? "-")</small>
+                                    </td>
+                                    <td><span class="fw-bold text-success">R$ @aluno.ValorMensalidade.ToString("N2")</span></td>
+                                    <td class="text-end pe-3">
+                                        <a href="/escola/aluno/@aluno.Id" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 text-decoration-none" style="font-size: 0.75rem;">
+                                            Gerenciar Ficha →
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
 
-            <!-- VISÃO EM CARDS PARA CELULAR -->
-            <div class="d-block d-md-none p-3">
-                <div class="d-flex flex-column gap-3">
-                    @foreach (var aluno in turma.Alunos)
+    <!-- CONTEÚDO DA ABA: PLANEJAMENTO E VIGÊNCIA -->
+    else if (abaAtiva == "planejamento")
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4" style="max-width: 800px;">
+            <h5 class="fw-bold text-dark mb-3 fs-6">📝 Configurações de Vigência e Diário</h5>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Início do Período Letivo</label>
+                    <input type="date" class="form-control rounded-pill" @bind="turma.DataInicioVigencia" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Término do Período Letivo</label>
+                    <input type="date" class="form-control rounded-pill" @bind="turma.DataFimVigencia" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold">Resumo / Planejamento Pedagógico / Diário da Turma</label>
+                    <textarea class="form-control rounded-4" rows="4" @bind="turma.ResumoPlanejamento" placeholder="Escreva aqui as diretrizes da turma, projetos pedagógicos ou recados gerais..."></textarea>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-success rounded-pill px-4 fw-semibold btn-sm" @onclick="SalvarPlanejamento">💾 Salvar Alterações</button>
+            </div>
+        </div>
+    }
+
+    <!-- CONTEÚDO DA ABA: HISTÓRICO / AUDITORIA -->
+    else if (abaAtiva == "historico")
+    {
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4" style="max-width: 800px;">
+            <h5 class="fw-bold text-dark mb-3 fs-6">📜 Log de Auditoria & Movimentações</h5>
+            <p class="text-muted small">Registro cronológico de todas as ações operacionais ocorridas nesta turma.</p>
+
+            <div class="timeline border-start ps-3 ms-2 d-flex flex-column gap-3">
+                @if (turma.Historicos == null || turma.Historicos.Count == 0)
+                {
+                    <div class="text-muted small">Nenhuma movimentação registrada até o momento. A criação da turma foi o marco inicial.</div>
+                }
+                else
+                {
+                    @foreach (var h in turma.Historicos.OrderByDescending(x => x.DataHora))
                     {
-                        <div class="card border shadow-none rounded-4 p-3 bg-light">
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <img src="@(string.IsNullOrEmpty(aluno.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : aluno.FotoUrl)" class="rounded-circle border shadow-sm" style="width: 42px; height: 42px; object-fit: cover;" />
-                                <div>
-                                    <h6 class="fw-bold text-dark m-0">@aluno.NomeCompleto</h6>
-                                    <small class="text-muted" style="font-size: 0.75rem;">Resp: @(aluno.Responsavel?.NomeCompleto ?? "N/D") (@(aluno.Responsavel?.Telefone ?? "N/D"))</small>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center small mb-3 text-muted">
-                                <div>Turno: <strong class="text-dark">@aluno.Turno</strong></div>
-                                <div>Valor: <strong class="text-success">R$ @aluno.Mensalidade.ToString("N2")</strong></div>
-                            </div>
-                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" style="font-size: 0.8rem;" @onclick="() => AbrirModalFicha(aluno)">
-                                Gerenciar Ficha & Boletos →
-                            </button>
+                        <div class="position-relative">
+                            <span class="position-absolute bg-primary rounded-circle" style="width: 10px; height: 10px; left: -21px; top: 5px;"></span>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">@h.DataHora.ToString("dd/MM/yyyy HH:mm") • <strong class="text-dark">@h.Tipo</strong></small>
+                            <span class="text-dark small fw-semibold">@h.Descricao</span>
                         </div>
                     }
-                </div>
+                }
             </div>
-        }
-    </div>
+        </div>
+    }
 </div>
-
-<!-- MODAL FICHA CADASTRAL E BOLETOS -->
-@if (exibirModalFicha && alunoSelecionado != null)
-{
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg mx-2 mx-md-auto">
-            <div class="modal-content rounded-4 border-0 shadow">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <img src="@(string.IsNullOrEmpty(alunoTemp.FotoUrl) ? "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=150&auto=format&fit=crop&q=80" : alunoTemp.FotoUrl)" class="rounded-circle border border-2 border-white shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" />
-                        <div>
-                            <h5 class="modal-title fw-bold m-0 fs-6">👶 Ficha & Boletos: @alunoSelecionado.NomeCompleto</h5>
-                            <small class="text-white-50" style="font-size: 0.7rem;">@turma.Nome | Turno: @alunoTemp.Turno</small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalFicha = false"></button>
-                </div>
-                <div class="modal-body p-3 p-md-4" style="max-height: 75vh; overflow-y: auto;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark m-0 fs-6">📋 Informações Cadastrais</h6>
-                        @if (!editandoAluno)
-                        {
-                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="() => editandoAluno = true">✏️ Editar Ficha</button>
-                        }
-                        else
-                        {
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" style="font-size: 0.75rem;" @onclick="CancelarEdicaoAluno">Cancelar</button>
-                                <button class="btn btn-success btn-sm rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="SalvarAlteracoesAluno">💾 Salvar</button>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="row g-2 mb-4 bg-light p-3 rounded-4 border">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold">Nome do Aluno</label>
-                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.NomeCompleto" disabled="@(!editandoAluno)" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold">URL da Foto</label>
-                            <input type="text" class="form-control rounded-pill" @bind="alunoTemp.FotoUrl" disabled="@(!editandoAluno)" />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label small fw-semibold">Mensalidade (R$)</label>
-                            <input type="number" step="0.01" class="form-control rounded-pill" @bind="alunoTemp.Mensalidade" disabled="@(!editandoAluno)" />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label small fw-semibold">Vínculo</label>
-                            <select class="form-select rounded-pill" @bind="alunoTemp.Vinculo" disabled="@(!editandoAluno)">
-                                <option value="Particular">Particular</option>
-                                <option value="Prefeitura">Prefeitura</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label small fw-semibold">Turno</label>
-                            <select class="form-select rounded-pill" @bind="alunoTemp.Turno" disabled="@(!editandoAluno)">
-                                <option value="Matutino">Matutino</option>
-                                <option value="Vespertino">Vespertino</option>
-                                <option value="Integral">Integral</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <h6 class="fw-bold text-dark mb-2 fs-6">💵 Histórico de Boletos (@DateTime.Now.Year)</h6>
-                    <div class="table-responsive border rounded-4 overflow-hidden">
-                        <table class="table table-sm align-middle mb-0 small">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-3">Mês</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                    <th class="text-end pe-3">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var b in boletosAlunoTemp)
-                                {
-                                    <tr>
-                                        <td class="ps-3 fw-bold">@b.Mes</td>
-                                        <td>R$ @b.Valor.ToString("N2")</td>
-                                        <td>
-                                            @if (b.Pago)
-                                            {
-                                                <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill">🟢 Pago</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill">🔴 Pendente</span>
-                                            }
-                                        </td>
-                                        <td class="text-end pe-3">
-                                            @if (!b.Pago)
-                                            {
-                                                <button class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => BaixarBoleto(b)">Baixar</button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" @onclick="() => EstornarBoleto(b)">Estornar</button>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalFicha = false">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-<!-- MODAL NOVO ALUNO -->
-@if (exibirModalNovoAluno)
-{
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered mx-2 mx-md-auto">
-            <div class="modal-content rounded-4 border-0 shadow">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold fs-6">👶 Matricular Novo Aluno</h5>
-                    <button type="button" class="btn-close btn-close-white" @onclick="() => exibirModalNovoAluno = false"></button>
-                </div>
-                <div class="modal-body p-3">
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold">Nome do Aluno</label>
-                        <input type="text" class="form-control rounded-pill" @bind="novoAluno.NomeCompleto" placeholder="Nome completo..." />
-                    </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Vínculo</label>
-                            <select class="form-select rounded-pill" @bind="novoAluno.Vinculo">
-                                <option value="Particular">Particular</option>
-                                <option value="Prefeitura">Prefeitura</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Turno</label>
-                            <select class="form-select rounded-pill" @bind="novoAluno.Turno">
-                                <option value="Matutino">Matutino</option>
-                                <option value="Vespertino">Vespertino</option>
-                                <option value="Integral">Integral</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold">Mensalidade (R$)</label>
-                        <input type="number" step="0.01" class="form-control rounded-pill" @bind="novoAluno.Mensalidade" />
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => exibirModalNovoAluno = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-semibold" @onclick="SalvarNovoAluno">Matricular</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
 
 @code {
     [Parameter] public int TurmaId { get; set; }
     private Turma turma = new();
-    
-    private decimal receitaEfetivaTurma = 0;
-    private decimal receitaPrevisaoTurma = 0;
-    private int inadimplentesTurma = 0;
+    private string abaAtiva = "alunos";
     private string mensagemSucesso = string.Empty;
-
-    private bool exibirModalFicha = false;
-    private bool editandoAluno = false;
-    private Aluno? alunoSelecionado;
-    private Aluno alunoTemp = new();
-
-    private bool exibirModalNovoAluno = false;
-    private Aluno novoAluno = new() { Mensalidade = 350.00m, Turno = "Integral", Vinculo = "Particular" };
-
-    public class BoletoItem
-    {
-        public string Mes { get; set; } = string.Empty;
-        public decimal Valor { get; set; }
-        public bool Pago { get; set; }
-    }
-    private List<BoletoItem> boletosAlunoTemp = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await CarregarDadosTurma();
+        await CarregarDados();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
-    }
-
-    private async Task CarregarDadosTurma()
+    private async Task CarregarDados()
     {
         var t = await Db.Turmas
             .Include(x => x.Alunos)
                 .ThenInclude(a => a.Responsavel)
-            .Include(x => x.Escola)
+            .Include(x => x.Historicos)
             .FirstOrDefaultAsync(x => x.Id == TurmaId);
 
-        if (t != null) turma = t;
-
-        receitaPrevisaoTurma = 0;
-        receitaEfetivaTurma = 0;
-        inadimplentesTurma = 0;
-
-        if (turma.Alunos != null)
+        if (t != null)
         {
-            foreach (var a in turma.Alunos)
-            {
-                receitaPrevisaoTurma += a.Mensalidade;
-                // Exemplo simulado de pagamento no mês atual
-                receitaEfetivaTurma += a.Mensalidade;
-            }
+            turma = t;
         }
     }
 
-    private async Task AbrirModalFicha(Aluno aluno)
+    private async Task SalvarPlanejamento()
     {
-        alunoSelecionado = aluno;
-        CopiarAlunoParaTemp();
-        editandoAluno = false;
-
-        boletosAlunoTemp.Clear();
-        string[] meses = { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
-        int mesAtualIdx = DateTime.Now.Month - 1;
-
-        for (int i = 0; i < meses.Length; i++)
-        {
-            bool pago = i <= mesAtualIdx;
-            boletosAlunoTemp.Add(new BoletoItem { Mes = meses[i], Valor = aluno.Mensalidade, Pago = pago });
-        }
-
-        exibirModalFicha = true;
-        await Task.CompletedTask;
-    }
-
-    private void CopiarAlunoParaTemp()
-    {
-        if (alunoSelecionado != null)
-        {
-            alunoTemp = new Aluno
-            {
-                Id = alunoSelecionado.Id,
-                NomeCompleto = alunoSelecionado.NomeCompleto,
-                FotoUrl = alunoSelecionado.FotoUrl,
-                Vinculo = alunoSelecionado.Vinculo,
-                Turno = alunoSelecionado.Turno,
-                Mensalidade = alunoSelecionado.Mensalidade,
-                TurmaId = alunoSelecionado.TurmaId,
-                ResponsavelId = alunoSelecionado.ResponsavelId
-            };
-        }
-    }
-
-    private void CancelarEdicaoAluno()
-    {
-        CopiarAlunoParaTemp();
-        editandoAluno = false;
-    }
-
-    private async Task SalvarAlteracoesAluno()
-    {
-        if (alunoSelecionado != null)
-        {
-            alunoSelecionado.NomeCompleto = alunoTemp.NomeCompleto;
-            alunoSelecionado.FotoUrl = alunoTemp.FotoUrl;
-            alunoSelecionado.Vinculo = alunoTemp.Vinculo;
-            alunoSelecionado.Turno = alunoTemp.Turno;
-            alunoSelecionado.Mensalidade = alunoTemp.Mensalidade;
-
-            Db.Alunos.Update(alunoSelecionado);
-            await Db.SaveChangesAsync();
-            editandoAluno = false;
-            mensagemSucesso = "Ficha do aluno atualizada com sucesso!";
-            await CarregarDadosTurma();
-        }
-    }
-
-    private void BaixarBoleto(BoletoItem b)
-    {
-        b.Pago = true;
-        StateHasChanged();
-    }
-
-    private void EstornarBoleto(BoletoItem b)
-    {
-        b.Pago = false;
-        StateHasChanged();
-    }
-
-    private void AbrirModalNovoAluno() => exibirModalNovoAluno = true;
-
-    private async Task SalvarNovoAluno()
-    {
-        novoAluno.TurmaId = TurmaId;
-        Db.Alunos.Add(novoAluno);
-        await Db.SaveChangesAsync();
+        Db.Turmas.Update(turma);
         
-        exibirModalNovoAluno = false;
-        novoAluno = new Aluno { Mensalidade = 350.00m, Turno = "Integral", Vinculo = "Particular" };
-        mensagemSucesso = "Aluno matriculado com sucesso!";
-        await CarregarDadosTurma();
+        // Adiciona registro no histórico de auditoria
+        Db.HistoricoMovimentacoes.Add(new HistoricoMovimentacao        {
+            TurmaId = turma.Id,
+            Tipo = "Planejamento",
+            Descricao = "O planejamento pedagógico ou período de vigência foi atualizado pela direção."
+        });
+
+        await Db.SaveChangesAsync();
+        mensagemSucesso = "Planejamento e vigência atualizados com sucesso!";
+        await CarregarDados();
     }
 
     private void VoltarPainelEscola() => Navigation.NavigateTo($"/escola/gerenciar/{turma.EscolaId}");

@@ -11,13 +11,13 @@
 
 <PageTitle>Matricular Novo Aluno</PageTitle>
 
-<div class="container py-4" style="max-width: 800px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container py-4 px-3 px-md-0" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="fw-bold text-dark m-0">👶 Matrícula de Novo Aluno</h3>
+            <h3 class="fw-bold text-dark m-0 fs-4">👶 Matrícula de Novo Aluno</h3>
             <p class="text-muted small m-0">Preencha os dados cadastrais, faça o upload da foto e defina as credenciais do portal.</p>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill px-3" @onclick="VoltarTurma">⬅ Voltar à Turma</button>
+        <button class="btn btn-outline-secondary rounded-pill px-3 btn-sm" @onclick="VoltarTurma">⬅ Voltar à Turma</button>
     </div>
 
     @if (!string.IsNullOrEmpty(mensagemErro))
@@ -25,18 +25,18 @@
         <div class="alert alert-danger rounded-4 p-3 shadow-sm mb-4">❌ @mensagemErro</div>
     }
 
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
         <EditForm Model="novoAluno" OnValidSubmit="SalvarMatricula">
             <DataAnnotationsValidator />
             <ValidationSummary class="alert alert-danger rounded-4 small mb-4" />
 
-            <h5 class="fw-bold text-primary mb-3">1. Identificação do Aluno</h5>
+            <h5 class="fw-bold text-primary mb-3 fs-6">1. Identificação do Aluno</h5>
             <div class="row g-3 mb-4 align-items-center">
-                <div class="col-md-9">
+                <div class="col-12 col-md-9">
                     <label class="form-label small fw-bold">Nome Completo do Aluno *</label>
                     <InputText class="form-control rounded-pill" @bind-Value="novoAluno.NomeCompleto" placeholder="Ex: Lucas Gabriel da Silva" />
                 </div>
-                <div class="col-md-3 text-center">
+                <div class="col-12 col-md-3 text-center">
                     <label class="form-label small fw-bold d-block">Foto do Aluno</label>
                     <div class="border rounded-4 p-2 bg-light d-inline-block position-relative" style="width: 80px; height: 80px;">
                         @if (string.IsNullOrEmpty(novoAluno.FotoUrl))
@@ -49,7 +49,7 @@
                         }
                     </div>
                 </div>
-                <div class="col-md-12">
+                <div class="col-12">
                     <label class="form-label small fw-bold">Enviar Foto (Arquivo do Computador)</label>
                     <InputFile OnChange="CarregarFotoArquivo" class="form-control form-control-sm rounded-pill" accept=".jpg,.jpeg,.png" />
                     <small class="text-muted" style="font-size: 0.7rem;">Formatos aceitos: JPG, PNG. A foto será salva automaticamente no servidor.</small>
@@ -57,11 +57,11 @@
             </div>
 
             <div class="row g-3 mb-4">
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label small fw-bold">Data de Nascimento *</label>
                     <InputDate class="form-control rounded-pill" @bind-Value="novoAluno.DataNascimento" />
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <label class="form-label small fw-bold">CPF do Aluno (Usado como Login do Portal) *</label>
                     <InputText class="form-control rounded-pill" @bind-Value="cpfAluno" placeholder="000.000.000-00" />
                 </div>
@@ -69,16 +69,16 @@
 
             <hr class="text-muted opacity-25 my-4">
 
-            <h5 class="fw-bold text-primary mb-3">2. Vínculo e Mensalidade</h5>
+            <h5 class="fw-bold text-primary mb-3 fs-6">2. Vínculo e Mensalidade</h5>
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-bold">Vínculo *</label>
                     <InputSelect class="form-select rounded-pill" @bind-Value="novoAluno.Vinculo">
                         <option value="Particular">Particular</option>
                         <option value="Prefeitura">Prefeitura</option>
                     </InputSelect>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-bold">Turno *</label>
                     <InputSelect class="form-select rounded-pill" @bind-Value="novoAluno.Turno">
                         <option value="Integral">Integral</option>
@@ -86,7 +86,7 @@
                         <option value="Vespertino">Vespertino</option>
                     </InputSelect>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-bold">Valor da Mensalidade (R$) *</label>
                     <InputNumber class="form-control rounded-pill" @bind-Value="novoAluno.Mensalidade" />
                 </div>
@@ -99,21 +99,21 @@
             <hr class="text-muted opacity-25 my-4">
 
             <div class="p-3 bg-light rounded-4 border mb-4">
-                <h6 class="fw-bold text-dark mb-2">🔑 Credenciais de Acesso ao Portal dos Pais</h6>
+                <h6 class="fw-bold text-dark mb-2 fs-6">🔑 Credenciais de Acesso ao Portal dos Pais</h6>
                 <p class="text-muted small mb-2">Geradas automaticamente pelo sistema com base no CPF e Data de Nascimento:</p>
                 <div class="row g-2 small">
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <strong>Login (CPF):</strong> <span class="text-primary">@(string.IsNullOrWhiteSpace(cpfAluno) ? "(Informe o CPF acima)" : cpfAluno)</span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <strong>Senha Inicial (Data Nasc. sem barras):</strong> <span class="text-success">@novoAluno.DataNascimento.ToString("ddMMyyyy")</span>
                     </div>
                 </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" @onclick="VoltarTurma">Cancelar</button>
-                <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-semibold">Efetivar Matrícula</button>
+                <button type="button" class="btn btn-light rounded-pill px-4 btn-sm" @onclick="VoltarTurma">Cancelar</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-semibold btn-sm py-2">Efetivar Matrícula</button>
             </div>
         </EditForm>
     </div>

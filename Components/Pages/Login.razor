@@ -7,38 +7,686 @@
 @inject AuthStateService Auth
 @rendermode InteractiveServer
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light px-3">
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="width: 100%; max-width: 420px;">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold text-primary">🛡️ ZeloApp - Acesso</h3>
-            <p class="small text-muted">Entre com suas credenciais de administrador ou gestor.</p>
+<div class="login-container">
+    <div class="login-background">
+        <!-- Elementos decorativos -->
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
+    </div>
+
+    <div class="login-card">
+        <!-- Logo/Header -->
+        <div class="login-header">
+            <div class="login-icon">🛡️</div>
+            <h1 class="login-title">ZeloApp</h1>
+            <p class="login-subtitle">Sistema de Gestão Escolar</p>
         </div>
 
+        <!-- Mensagem de Erro -->
         @if (!string.IsNullOrEmpty(mensagemErro))
         {
-            <div class="alert alert-danger rounded-4 p-3 small mb-3">⚠️ @mensagemErro</div>
+            <div class="alert-error">
+                <span class="alert-icon">⚠️</span>
+                @mensagemErro
+            </div>
         }
 
-        <div class="mb-3">
-            <label class="form-label small fw-semibold text-secondary">Usuário / Login</label>
-            <input type="text" class="form-control rounded-pill" @value="usuario" @oninput="e => usuario = e.Value?.ToString() ?? string.Empty" @onkeydown="TratarKeyDown" placeholder="Digite seu usuário..." />
-        </div>
+        <!-- Formulário -->
+        <div class="login-form">
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">👤</span>
+                    Usuário / Login
+                </label>
+                <input type="text" 
+                       class="form-input" 
+                       @value="usuario" 
+                       @oninput="e => usuario = e.Value?.ToString() ?? string.Empty" 
+                       @onkeydown="TratarKeyDown" 
+                       placeholder="Digite seu usuário..."
+                       autofocus />
+            </div>
 
-        <div class="mb-4">
-            <label class="form-label small fw-semibold text-secondary">Senha</label>
-            <input type="password" class="form-control rounded-pill" @value="senha" @oninput="e => senha = e.Value?.ToString() ?? string.Empty" @onkeydown="TratarKeyDown" placeholder="********" />
-        </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <span class="label-icon">🔒</span>
+                    Senha
+                </label>
+                <div class="password-wrapper">
+                    <input type="@(mostrarSenha ? "text" : "password")" 
+                           class="form-input" 
+                           @value="senha" 
+                           @oninput="e => senha = e.Value?.ToString() ?? string.Empty" 
+                           @onkeydown="TratarKeyDown" 
+                           placeholder="********" />
+                    <button type="button" 
+                            class="toggle-password" 
+                            @onclick="() => mostrarSenha = !mostrarSenha"
+                            aria-label="Mostrar senha">
+                        @if (mostrarSenha)
+                        {
+                            <span>👁️</span>
+                        }
+                        else
+                        {
+                            <span>🙈</span>
+                        }
+                    </button>
+                </div>
+            </div>
 
-        <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" @onclick="FazerLogin">
-            Entrar no Sistema →
-        </button>
+            <button class="btn-login" @onclick="FazerLogin">
+                <span class="btn-text">Entrar no Sistema</span>
+                <span class="btn-arrow">→</span>
+            </button>
+
+            <!-- Informações adicionais -->
+            <div class="login-footer">
+                <div class="login-info">
+                    <span class="info-badge">🔑 Admin: admin / admin123</span>
+                    <span class="info-badge">🏫 Gestor: login da escola</span>
+                </div>
+                <p class="login-helper">Sistema seguro • Dados criptografados</p>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    /* ========== CONTAINER PRINCIPAL ========== */
+    .login-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+        padding: 16px;
+        overflow: hidden;
+        z-index: 1000;
+    }
+
+    /* ========== ELEMENTOS DECORATIVOS ========== */
+    .login-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bg-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        animation: float 20s infinite ease-in-out;
+    }
+
+    .bg-circle-1 {
+        width: 400px;
+        height: 400px;
+        top: -100px;
+        right: -100px;
+        animation-delay: 0s;
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .bg-circle-2 {
+        width: 300px;
+        height: 300px;
+        bottom: -80px;
+        left: -80px;
+        animation-delay: -5s;
+        background: rgba(147, 197, 253, 0.08);
+    }
+
+    .bg-circle-3 {
+        width: 200px;
+        height: 200px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation-delay: -10s;
+        background: rgba(255, 255, 255, 0.03);
+        width: 600px;
+        height: 600px;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* ========== CARD DE LOGIN ========== */
+    .login-card {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 32px 28px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3), 
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ========== HEADER ========== */
+    .login-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .login-icon {
+        font-size: 3rem;
+        display: inline-block;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        width: 72px;
+        height: 72px;
+        line-height: 72px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+        animation: pulse 2s infinite ease-in-out;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .login-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 4px 0;
+        letter-spacing: -0.5px;
+    }
+
+    .login-subtitle {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* ========== ALERTA DE ERRO ========== */
+    .alert-error {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        animation: shake 0.5s ease;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        75% { transform: translateX(8px); }
+    }
+
+    .alert-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    /* ========== FORMULÁRIO ========== */
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        letter-spacing: 0.3px;
+    }
+
+    .label-icon {
+        font-size: 0.9rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background: white;
+        color: #0f172a;
+        outline: none;
+    }
+
+    .form-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        background: white;
+    }
+
+    .form-input::placeholder {
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    .form-input:focus::placeholder {
+        color: #cbd5e1;
+    }
+
+    /* ========== CAMPO DE SENHA ========== */
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-wrapper .form-input {
+        padding-right: 48px;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 4px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+        opacity: 0.6;
+        color: #64748b;
+        line-height: 1;
+    }
+
+    .toggle-password:hover {
+        background: #f1f5f9;
+        opacity: 1;
+    }
+
+    .toggle-password:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+
+    /* ========== BOTÃO DE LOGIN ========== */
+    .btn-login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        margin-top: 4px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-login::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-login:hover::before {
+        left: 100%;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-login:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    .btn-login:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+
+    .btn-text {
+        font-size: 0.95rem;
+    }
+
+    .btn-arrow {
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .btn-login:hover .btn-arrow {
+        transform: translateX(4px);
+    }
+
+    /* ========== FOOTER ========== */
+    .login-footer {
+        margin-top: 12px;
+        text-align: center;
+    }
+
+    .login-info {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .info-badge {
+        display: inline-block;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        font-family: monospace;
+        border: 1px solid #e2e8f0;
+    }
+
+    .login-helper {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+
+    /* ========== RESPONSIVO ========== */
+    /* Tablet */
+    @@media (min-width: 768px) {
+        .login-card {
+            padding: 40px 36px;
+            max-width: 440px;
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            font-size: 3.2rem;
+            border-radius: 24px;
+        }
+
+        .login-title {
+            font-size: 2rem;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+
+        .btn-login {
+            padding: 16px 28px;
+            font-size: 1rem;
+        }
+
+        .info-badge {
+            font-size: 0.7rem;
+            padding: 4px 14px;
+        }
+    }
+
+    /* Desktop */
+    @@media (min-width: 1024px) {
+        .login-card {
+            padding: 48px 44px;
+            max-width: 480px;
+            border-radius: 32px;
+        }
+
+        .login-icon {
+            width: 88px;
+            height: 88px;
+            line-height: 88px;
+            font-size: 3.5rem;
+            border-radius: 28px;
+        }
+
+        .login-title {
+            font-size: 2.2rem;
+        }
+
+        .bg-circle-1 {
+            width: 600px;
+            height: 600px;
+        }
+
+        .bg-circle-2 {
+            width: 400px;
+            height: 400px;
+        }
+
+        .bg-circle-3 {
+            width: 800px;
+            height: 800px;
+        }
+    }
+
+    /* Mobile pequeno */
+    @@media (max-width: 480px) {
+        .login-card {
+            padding: 24px 20px;
+            max-width: 100%;
+            border-radius: 20px;
+        }
+
+        .login-icon {
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            font-size: 2.4rem;
+            border-radius: 16px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+        }
+
+        .login-subtitle {
+            font-size: 0.8rem;
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+
+        .btn-login {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+
+        .info-badge {
+            font-size: 0.6rem;
+            padding: 3px 10px;
+        }
+
+        .alert-error {
+            font-size: 0.8rem;
+            padding: 8px 14px;
+        }
+    }
+
+    /* Mobile muito pequeno */
+    @@media (max-width: 360px) {
+        .login-card {
+            padding: 20px 16px;
+        }
+
+        .login-icon {
+            width: 52px;
+            height: 52px;
+            line-height: 52px;
+            font-size: 2rem;
+            border-radius: 14px;
+        }
+
+        .login-title {
+            font-size: 1.3rem;
+        }
+
+        .form-input {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-login {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+        }
+
+        .btn-arrow {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* ========== ACESSIBILIDADE ========== */
+    @@media (prefers-reduced-motion: reduce) {
+        .login-card {
+            animation: none;
+        }
+
+        .bg-circle {
+            animation: none;
+        }
+
+        .login-icon {
+            animation: none;
+        }
+
+        .btn-login::before {
+            display: none;
+        }
+
+        .btn-login:hover {
+            transform: none;
+        }
+
+        .btn-login:hover .btn-arrow {
+            transform: none;
+        }
+
+        .alert-error {
+            animation: none;
+        }
+    }
+
+    /* Suporte para navegadores com tema escuro */
+    @@media (prefers-color-scheme: dark) {
+        .login-card {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .login-title {
+            color: #f1f5f9;
+        }
+
+        .login-subtitle {
+            color: #94a3b8;
+        }
+
+        .form-input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .form-input:focus {
+            border-color: #3b82f6;
+            background: #1e293b;
+        }
+
+        .form-input::placeholder {
+            color: #64748b;
+        }
+
+        .form-label {
+            color: #94a3b8;
+        }
+
+        .info-badge {
+            background: #1e293b;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+
+        .login-helper {
+            color: #64748b;
+        }
+
+        .toggle-password {
+            color: #94a3b8;
+        }
+
+        .toggle-password:hover {
+            background: #1e293b;
+        }
+    }
+</style>
 
 @code {
     private string usuario = string.Empty;
     private string senha = string.Empty;
     private string mensagemErro = string.Empty;
+    private bool mostrarSenha = false;
 
     private async Task TratarKeyDown(KeyboardEventArgs e)
     {

@@ -20,7 +20,8 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+    <!-- Tabela para Desktop -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden d-none d-md-block">
         <div class="table-responsive">
             <table class="table align-middle mb-0 small">
                 <thead class="table-light">
@@ -72,6 +73,52 @@
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Cards para Mobile (Zero Scroll Horizontal) -->
+    <div class="d-block d-md-none">
+        <div class="d-flex flex-column gap-3">
+            @foreach (var aluno in AlunosFiltrados)
+            {
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        @if (!string.IsNullOrEmpty(aluno.FotoUrl))
+                        {
+                            <img src="@aluno.FotoUrl" class="rounded-circle object-fit-cover" style="width: 45px; height: 45px;" />
+                        }
+                        else
+                        {
+                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px; font-size: 0.9rem;">
+                                @aluno.NomeCompleto.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                        <div>
+                            <div class="fw-bold text-dark fs-6">@aluno.NomeCompleto</div>
+                            <small class="text-muted">Matrícula: @aluno.DataMatricula.ToString("dd/MM/yyyy")</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center small mb-2 pb-2 border-bottom">
+                        <span class="text-muted">Turma / Turno:</span>
+                        <span class="fw-semibold text-dark">@(aluno.Turma?.Nome ?? "Sem Turma") (@aluno.Turno)</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center small mb-3">
+                        <span class="text-muted">Vínculo:</span>
+                        <span class="badge bg-light text-dark border px-2 py-1">@aluno.Vinculo</span>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-1">
+                        <a href="/escola/aluno/@aluno.Id/responsaveis" class="btn btn-sm btn-outline-primary rounded-pill w-50 py-1.5" style="font-size: 0.75rem;">
+                            👥 Responsáveis
+                        </a>
+                        <a href="/escola/turma/@aluno.TurmaId" class="btn btn-sm btn-outline-secondary rounded-pill w-50 py-1.5" style="font-size: 0.75rem;">
+                            Ver Turma →
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

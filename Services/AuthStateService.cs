@@ -33,7 +33,6 @@ public class AuthStateService
         NotifyStateChanged();
     }
 
-    // ADICIONE ESTE MÉTODO CASO ESTEJA FALTANDO:
     public void FazerLogout()
     {
         UsuarioNome = string.Empty;

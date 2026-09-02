@@ -9,125 +9,143 @@
 
 <PageTitle>Zelo - Painel Super Admin (SaaS)</PageTitle>
 
-<div class="container-fluid px-2 px-md-4 py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-            <span class="badge bg-primary-subtle text-primary fw-bold mb-1 px-3 py-1 rounded-pill">Painel Administrativo Geral</span>
-            <h2 class="fw-bold text-dark m-0 fs-3">Gestão de Escolas & SaaS</h2>
-            <p class="text-muted small m-0">Acompanhamento financeiro anual e aquisição de clientes.</p>
-        </div>
-        <div>
-            <!-- CORRIGIDO: Agora redireciona direto para a tela dedicada de cadastro -->
-            <a href="/superadmin/escola/nova" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm btn-sm text-decoration-none">
-                + Nova Escola (Cliente)
-            </a>
+<div class="saas-dashboard">
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-left">
+                <span class="header-badge">Painel Administrativo Geral</span>
+                <h1 class="header-title">Gestão de Escolas & SaaS</h1>
+                <p class="header-subtitle">Acompanhamento financeiro anual e aquisição de clientes.</p>
+            </div>
+            <div class="header-right">
+                <a href="/superadmin/escola/nova" class="btn-primary-custom">
+                    <span class="btn-icon">➕</span>
+                    Nova Escola (Cliente)
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- MÉTRICAS -->
-    <div class="row g-2 g-md-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-success border-4">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Receita Efetiva (Pago)</small>
-                <span class="fs-6 fs-md-4 fw-bold text-success">R$ @receitaEfetivaMes.ToString("N2")</span>
+    <div class="metrics-grid">
+        <div class="metric-card metric-receita">
+            <div class="metric-content">
+                <span class="metric-label">Receita Efetiva (Pago)</span>
+                <span class="metric-value text-success">R$ @receitaEfetivaMes.ToString("N2")</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-primary border-4">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Previsão de Receita</small>
-                <span class="fs-6 fs-md-4 fw-bold text-primary">R$ @receitaPrevisaoMes.ToString("N2")</span>
+
+        <div class="metric-card metric-previsao">
+            <div class="metric-content">
+                <span class="metric-label">Previsão de Receita</span>
+                <span class="metric-value text-primary">R$ @receitaPrevisaoMes.ToString("N2")</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-danger border-4">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Custo Fixo (Servidor)</small>
-                <span class="fs-6 fs-md-4 fw-bold text-danger">R$ @custoServidor.ToString("N2")</span>
+
+        <div class="metric-card metric-custo">
+            <div class="metric-content">
+                <span class="metric-label">Custo Fixo (Servidor)</span>
+                <span class="metric-value text-danger">R$ @custoServidor.ToString("N2")</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-warning border-4">
-                <small class="text-muted d-block fw-semibold" style="font-size: 0.75rem;">Inadimplentes (Mês)</small>
-                <span class="fs-6 fs-md-4 fw-bold text-warning">@escolasInadimplentes</span>
+
+        <div class="metric-card metric-inadimplentes">
+            <div class="metric-content">
+                <span class="metric-label">Inadimplentes (Mês)</span>
+                <span class="metric-value text-warning">@escolasInadimplentes</span>
             </div>
         </div>
     </div>
 
-    <!-- GRÁFICO DE BARRAS VERTICAIS (FINANCEIRO ANUAL) -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4 mb-4">
-        <h5 class="fw-bold text-dark mb-1 fs-6">📊 Demonstrativo Financeiro Anual</h5>
-        <p class="text-muted small mb-4">Evolução do faturamento mês a mês</p>
-        
-        <div class="d-flex align-items-end justify-content-between gap-1 gap-md-2 border-bottom pb-2" style="height: 180px;">
-            @foreach (var m in demonstrativoAnual)
-            {
-                var alturaPct = maxValorGrafico > 0 ? (int)((m.Receita / maxValorGrafico) * 130) : 10;
-                <div class="d-flex flex-column align-items-center flex-grow-1">
-                    <span class="small fw-bold text-primary mb-1" style="font-size: 0.55rem;">R$ @m.Receita.ToString("N0")</span>
-                    <div class="w-100 bg-primary-subtle rounded-top d-flex align-items-end justify-content-center" style="height: 130px; max-width: 30px;">
-                        <div class="w-100 bg-primary rounded-top" style="height: @Math.Max(alturaPct, 5)px; transition: height 0.3s;"></div>
+    <!-- GRÁFICO -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div>
+                <h5 class="chart-title">📊 Demonstrativo Financeiro Anual</h5>
+                <p class="chart-subtitle">Evolução do faturamento mês a mês</p>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-bars">
+                @foreach (var m in demonstrativoAnual)
+                {
+                    var alturaPct = maxValorGrafico > 0 ? (int)((m.Receita / maxValorGrafico) * 130) : 10;
+                    <div class="chart-bar-wrapper">
+                        <span class="chart-bar-value">R$ @m.Receita.ToString("N0")</span>
+                        <div class="chart-bar-track">
+                            <div class="chart-bar-fill" style="height: @Math.Max(alturaPct, 5)px;"></div>
+                        </div>
+                        <span class="chart-bar-label">@m.NomeMes.Substring(0, 3)</span>
                     </div>
-                </div>
-            }
-        </div>
-        <div class="d-flex justify-content-between text-muted small mt-2 px-1">
-            @foreach (var m in demonstrativoAnual)
-            {
-                <span style="font-size: 0.65rem; width: 30px; text-align: center;">@m.NomeMes.Substring(0, 3)</span>
-            }
+                }
+            </div>
         </div>
     </div>
 
+    <!-- MENSAGEM DE SUCESSO -->
     @if (!string.IsNullOrEmpty(mensagemSucesso))
     {
-        <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+        <div class="alert-success-custom">
+            <span class="alert-icon">✅</span>
+            @mensagemSucesso
+        </div>
     }
 
     <!-- TABELA / CARDS DE ESCOLAS -->
-    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
-        <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold text-dark m-0 fs-6">🏫 Escolas Clientes da Plataforma</h5>
-            <span class="badge bg-secondary rounded-pill px-3 py-1">@listaEscolas.Count unidades</span>
+    <div class="schools-card">
+        <div class="schools-header">
+            <div class="schools-header-left">
+                <span class="schools-icon">🏫</span>
+                <h5 class="schools-title">Escolas Clientes da Plataforma</h5>
+            </div>
+            <span class="schools-count">@listaEscolas.Count unidades</span>
         </div>
 
-        <!-- VISÃO DE TABELA PARA TELAS GRANDES -->
-        <div class="table-responsive d-none d-md-block">
-            <table class="table align-middle mb-0 small">
-                <thead class="table-light text-secondary uppercase">
+        <!-- VISÃO DE TABELA PARA DESKTOP -->
+        <div class="table-responsive-desktop">
+            <table class="schools-table">
+                <thead>
                     <tr>
-                        <th class="ps-3">Escola / CNPJ</th>
+                        <th>Escola / CNPJ</th>
                         <th>Gestor(a) & Contato</th>
                         <th>Alunos</th>
                         <th>Assinatura</th>
                         <th>Status</th>
-                        <th class="text-end pe-3">Ações</th>
+                        <th class="text-right">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var escola in listaEscolas)
                     {
                         <tr>
-                            <td class="ps-3">
-                                <div class="fw-bold text-dark">@escola.Nome</div>
-                                <small class="text-muted">@escola.Cnpj</small>
+                            <td>
+                                <div class="school-name">@escola.Nome</div>
+                                <div class="school-cnpj">@escola.Cnpj</div>
                             </td>
                             <td>
-                                <div class="text-dark">@escola.NomeGestor</div>
-                                <small class="text-muted">@escola.TelefoneGestor</small>
+                                <div class="school-gestor">@escola.NomeGestor</div>
+                                <div class="school-contato">@escola.TelefoneGestor</div>
                             </td>
-                            <td><span class="badge bg-light text-dark border px-2 py-1">@(escolasAlunosCount.ContainsKey(escola.Id) ? escolasAlunosCount[escola.Id] : 0)</span></td>
-                            <td><span class="fw-bold text-success">R$ @escola.ValorMensalidadePlataforma.ToString("N2")</span></td>
+                            <td>
+                                <span class="school-alunos-badge">@(escolasAlunosCount.ContainsKey(escola.Id) ? escolasAlunosCount[escola.Id] : 0)</span>
+                            </td>
+                            <td>
+                                <span class="school-valor">R$ @escola.ValorMensalidadePlataforma.ToString("N2")</span>
+                            </td>
                             <td>
                                 @if (escola.MensalidadeAtualPaga)
                                 {
-                                    <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill">🟢 Pago</span>
+                                    <span class="status-badge status-paid">🟢 Pago</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill">🔴 Pendente</span>
+                                    <span class="status-badge status-pending">🔴 Pendente</span>
                                 }
                             </td>
-                            <td class="text-end pe-3">
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;" @onclick="() => GerenciarEscola(escola.Id)">
+                            <td class="text-right">
+                                <button class="btn-manage" @onclick="() => GerenciarEscola(escola.Id)">
                                     Gerenciar →
                                 </button>
                             </td>
@@ -137,41 +155,727 @@
             </table>
         </div>
 
-        <!-- VISÃO EM CARDS PARA CELULAR -->
-        <div class="d-block d-md-none p-3">
-            <div class="d-flex flex-column gap-3">
-                @foreach (var escola in listaEscolas)
-                {
-                    <div class="card border shadow-none rounded-4 p-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="fw-bold text-dark m-0">@escola.Nome</h6>
-                                <small class="text-muted" style="font-size: 0.7rem;">CNPJ: @escola.Cnpj</small>
-                            </div>
-                            <div>
-                                @if (escola.MensalidadeAtualPaga)
-                                {
-                                    <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">🟢 Pago</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger-subtle text-danger px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">🔴 Pendente</span>
-                                }
-                            </div>
+        <!-- VISÃO EM CARDS PARA MOBILE -->
+        <div class="schools-mobile-cards">
+            @foreach (var escola in listaEscolas)
+            {
+                <div class="school-mobile-card">
+                    <div class="school-mobile-header">
+                        <div>
+                            <h6 class="school-mobile-name">@escola.Nome</h6>
+                            <span class="school-mobile-cnpj">CNPJ: @escola.Cnpj</span>
                         </div>
-                        <div class="small text-muted mb-3">
-                            <div>Gestor(a): <strong class="text-dark">@escola.NomeGestor</strong></div>
-                            <div>Alunos: <strong class="text-dark">@(escolasAlunosCount.ContainsKey(escola.Id) ? escolasAlunosCount[escola.Id] : 0)</strong> | Valor: <strong class="text-success">R$ @escola.ValorMensalidadePlataforma.ToString("N2")</strong></div>
+                        <div>
+                            @if (escola.MensalidadeAtualPaga)
+                            {
+                                <span class="status-badge status-paid">🟢 Pago</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-pending">🔴 Pendente</span>
+                            }
                         </div>
-                        <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm" style="font-size: 0.8rem;" @onclick="() => GerenciarEscola(escola.Id)">
-                            Gerenciar Unidade →
-                        </button>
                     </div>
-                }
-            </div>
+                    <div class="school-mobile-body">
+                        <div class="school-mobile-info">
+                            <span class="info-label">Gestor(a):</span>
+                            <span class="info-value">@escola.NomeGestor</span>
+                        </div>
+                        <div class="school-mobile-info">
+                            <span class="info-label">Alunos:</span>
+                            <span class="info-value">@(escolasAlunosCount.ContainsKey(escola.Id) ? escolasAlunosCount[escola.Id] : 0)</span>
+                        </div>
+                        <div class="school-mobile-info">
+                            <span class="info-label">Valor:</span>
+                            <span class="info-value text-success">R$ @escola.ValorMensalidadePlataforma.ToString("N2")</span>
+                        </div>
+                    </div>
+                    <button class="btn-manage-mobile" @onclick="() => GerenciarEscola(escola.Id)">
+                        Gerenciar Unidade →
+                    </button>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<style>
+    /* ========== DASHBOARD PRINCIPAL ========== */
+    .saas-dashboard {
+        padding: 16px;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* ========== HEADER ========== */
+    .dashboard-header {
+        margin-bottom: 24px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-left {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .header-badge {
+        display: inline-block;
+        background: #dbeafe;
+        color: #1e3a8a;
+        font-weight: 600;
+        font-size: 0.7rem;
+        padding: 4px 16px;
+        border-radius: 50px;
+        margin-bottom: 8px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .header-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 4px 0;
+    }
+
+    .header-subtitle {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .header-right {
+        flex-shrink: 0;
+    }
+
+    .btn-primary-custom {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-icon {
+        font-size: 1.1rem;
+    }
+
+    /* ========== MÉTRICAS ========== */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border-left: 4px solid;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .metric-receita { border-left-color: #22c55e; }
+    .metric-previsao { border-left-color: #3b82f6; }
+    .metric-custo { border-left-color: #ef4444; }
+    .metric-inadimplentes { border-left-color: #f59e0b; }
+
+    .metric-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .metric-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .text-success { color: #22c55e; }
+    .text-primary { color: #3b82f6; }
+    .text-danger { color: #ef4444; }
+    .text-warning { color: #f59e0b; }
+
+    /* ========== GRÁFICO ========== */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+    }
+
+    .chart-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 1rem;
+        margin: 0 0 4px 0;
+    }
+
+    .chart-subtitle {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .chart-container {
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .chart-bars {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 6px;
+        min-height: 180px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+        min-width: 300px;
+    }
+
+    .chart-bar-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        min-width: 20px;
+    }
+
+    .chart-bar-value {
+        font-size: 0.5rem;
+        font-weight: 700;
+        color: #3b82f6;
+        margin-bottom: 4px;
+        white-space: nowrap;
+    }
+
+    .chart-bar-track {
+        width: 100%;
+        max-width: 32px;
+        height: 130px;
+        background: #dbeafe;
+        border-radius: 4px 4px 0 0;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+    }
+
+    .chart-bar-fill {
+        width: 100%;
+        background: linear-gradient(180deg, #3b82f6, #1e3a8a);
+        border-radius: 4px 4px 0 0;
+        transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 4px;
+    }
+
+    .chart-bar-label {
+        font-size: 0.55rem;
+        color: #94a3b8;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    /* ========== ALERTA ========== */
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        border-radius: 16px;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .alert-icon {
+        font-size: 1.2rem;
+    }
+
+    /* ========== CARD DE ESCOLAS ========== */
+    .schools-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .schools-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .schools-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .schools-icon {
+        font-size: 1.2rem;
+    }
+
+    .schools-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .schools-count {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 16px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* ========== TABELA DESKTOP ========== */
+    .table-responsive-desktop {
+        display: none;
+        overflow-x: auto;
+    }
+
+    .schools-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .schools-table thead {
+        background: #f8fafc;
+    }
+
+    .schools-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .schools-table td {
+        padding: 12px 16px;
+        border-top: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .schools-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .schools-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .school-name {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .school-cnpj {
+        font-size: 0.7rem;
+        color: #94a3b8;
+    }
+
+    .school-gestor {
+        color: #0f172a;
+        font-weight: 500;
+    }
+
+    .school-contato {
+        font-size: 0.7rem;
+        color: #94a3b8;
+    }
+
+    .school-alunos-badge {
+        display: inline-block;
+        background: #f1f5f9;
+        padding: 2px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+
+    .school-valor {
+        font-weight: 700;
+        color: #22c55e;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .status-paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-manage {
+        background: transparent;
+        border: none;
+        color: #3b82f6;
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        padding: 6px 16px;
+        border-radius: 50px;
+        transition: all 0.2s ease;
+        border: 1px solid #dbeafe;
+    }
+
+    .btn-manage:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        transform: scale(1.05);
+    }
+
+    /* ========== CARDS MOBILE ========== */
+    .schools-mobile-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .school-mobile-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+
+    .school-mobile-card:hover {
+        border-color: #dbeafe;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .school-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        gap: 12px;
+    }
+
+    .school-mobile-name {
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+        font-size: 0.95rem;
+    }
+
+    .school-mobile-cnpj {
+        font-size: 0.7rem;
+        color: #94a3b8;
+    }
+
+    .school-mobile-body {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+
+    .school-mobile-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+    }
+
+    .info-label {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .btn-manage-mobile {
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-manage-mobile:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+    }
+
+    /* ========== RESPONSIVO ========== */
+    /* TABLET */
+    @@media (min-width: 768px) {
+        .saas-dashboard {
+            padding: 24px 32px;
+        }
+
+        .metrics-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .metric-card {
+            padding: 20px;
+        }
+
+        .metric-value {
+            font-size: 1.3rem;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+        }
+
+        .chart-card {
+            padding: 24px;
+        }
+
+        .chart-bars {
+            gap: 12px;
+            min-height: 200px;
+        }
+
+        .schools-mobile-cards {
+            display: none;
+        }
+
+        .table-responsive-desktop {
+            display: block;
+        }
+    }
+
+    /* DESKTOP */
+    @@media (min-width: 1024px) {
+        .saas-dashboard {
+            padding: 32px 48px;
+        }
+
+        .header-title {
+            font-size: 2rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+        }
+
+        .chart-bars {
+            gap: 16px;
+            min-height: 220px;
+        }
+
+        .chart-bar-track {
+            max-width: 40px;
+            height: 150px;
+        }
+
+        .schools-table {
+            font-size: 0.9rem;
+        }
+
+        .schools-table th,
+        .schools-table td {
+            padding: 16px 24px;
+        }
+
+        .btn-manage {
+            font-size: 0.8rem;
+            padding: 8px 20px;
+        }
+    }
+
+    /* MOBILE PEQUENO */
+    @@media (max-width: 480px) {
+        .saas-dashboard {
+            padding: 12px;
+        }
+
+        .header-content {
+            flex-direction: column;
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+        }
+
+        .header-right {
+            width: 100%;
+        }
+
+        .btn-primary-custom {
+            width: 100%;
+            justify-content: center;
+            padding: 12px 20px;
+            font-size: 0.85rem;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .metric-card {
+            padding: 12px;
+        }
+
+        .metric-value {
+            font-size: 0.95rem;
+        }
+
+        .metric-label {
+            font-size: 0.6rem;
+        }
+
+        .chart-card {
+            padding: 14px;
+        }
+
+        .chart-bar-track {
+            max-width: 20px;
+            height: 100px;
+        }
+
+        .chart-bar-value {
+            font-size: 0.4rem;
+        }
+
+        .chart-bar-label {
+            font-size: 0.45rem;
+        }
+
+        .schools-header {
+            padding: 12px 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .schools-title {
+            font-size: 0.85rem;
+        }
+
+        .school-mobile-card {
+            padding: 14px;
+        }
+
+        .school-mobile-name {
+            font-size: 0.85rem;
+        }
+
+        .btn-manage-mobile {
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+    }
+
+    /* SCROLLBAR PERSONALIZADA */
+    .chart-container::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .chart-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 2px;
+    }
+
+    .chart-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 2px;
+    }
+
+    .table-responsive-desktop::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-responsive-desktop::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .table-responsive-desktop::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+</style>
 
 @code {
     private List<Escola> listaEscolas = new();

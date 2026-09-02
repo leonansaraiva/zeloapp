@@ -11,6 +11,9 @@ public class AppDbContext : DbContext
     public DbSet<Responsavel> Responsaveis { get; set; }
     public DbSet<Despesa> Despesas { get; set; } // <--- ADICIONE ESTA LINHA
 
+public DbSet<Professor> Professores { get; set; }
+public DbSet<ProfessorTurma> ProfessorTurmas { get; set; }
+public DbSet<HistoricoMovimentacao> HistoricoMovimentacoes { get; set; }
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     base.OnModelCreating(modelBuilder);

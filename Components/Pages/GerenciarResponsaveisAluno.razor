@@ -9,13 +9,13 @@
 
 <PageTitle>Gerenciar Responsáveis e Autorizados</PageTitle>
 
-<div class="container py-4" style="max-width: 900px;">
+<div class="container py-4 px-3 px-md-0" style="max-width: 900px;">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="fw-bold text-dark m-0">👥 Responsáveis e Autorizados</h3>
+            <h3 class="fw-bold text-dark m-0 fs-4">👥 Responsáveis e Autorizados</h3>
             <p class="text-muted small m-0">Aluno: <strong>@aluno.NomeCompleto</strong> | Vínculo: @aluno.Vinculo</p>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill px-3" @onclick="Voltar">⬅ Voltar ao Aluno / Turma</button>
+        <button class="btn btn-outline-secondary rounded-pill px-3 btn-sm" @onclick="Voltar">⬅ Voltar</button>
     </div>
 
     @if (!string.IsNullOrEmpty(mensagemSucesso))
@@ -24,18 +24,18 @@
     }
 
     <!-- 1. VÍNCULO E RESPONSÁVEL FINANCEIRO -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-        <h5 class="fw-bold text-primary mb-3">1. Vínculo e Responsável Financeiro</h5>
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-4">
+        <h5 class="fw-bold text-primary mb-3 fs-6">1. Vínculo e Responsável Financeiro</h5>
         <EditForm Model="aluno" OnValidSubmit="SalvarVinculoFinanceiro">
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-bold">Tipo de Vínculo</label>
                     <InputSelect class="form-select rounded-pill" @bind-Value="aluno.Vinculo">
                         <option value="Particular">Particular</option>
                         <option value="Prefeitura">Prefeitura (Conveniado)</option>
                     </InputSelect>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     @if (aluno.Vinculo == "Prefeitura")
                     {
                         <div class="p-2 bg-light rounded-pill border small px-3 text-muted">
@@ -48,76 +48,77 @@
                         <InputText class="form-control rounded-pill" @bind-Value="aluno.NomeResponsavel" placeholder="Nome do pai, mãe ou responsável..." />
                     }
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold shadow-sm">Salvar</button>
+                <div class="col-12 col-md-2">
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-semibold shadow-sm btn-sm py-2">Salvar</button>
                 </div>
             </div>
         </EditForm>
     </div>
 
     <!-- 2. PESSOAS AUTORIZADAS / RESPONSÁVEIS DE RETIRADA -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h5 class="fw-bold text-primary m-0">2. Pessoas Autorizadas a Retirar o Aluno</h5>
+                <h5 class="fw-bold text-primary m-0 fs-6">2. Pessoas Autorizadas a Retirar o Aluno</h5>
                 <small class="text-muted">Cadastre pais, avós, tios ou autorizados temporários com controle de vigência.</small>
             </div>
         </div>
 
         <!-- Formulário para Adicionar Novo Autorizado -->
         <div class="p-3 bg-light rounded-4 border mb-4">
-            <h6 class="fw-bold text-dark mb-3">➕ Adicionar Nova Pessoa Autorizada</h6>
+            <h6 class="fw-bold text-dark mb-3 fs-6">➕ Adicionar Nova Pessoa Autorizada</h6>
             <EditForm Model="novoResponsavel" OnValidSubmit="AdicionarResponsavel">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">Nome Completo *</label>
                         <InputText class="form-control rounded-pill" @bind-Value="novoResponsavel.NomeCompleto" placeholder="Nome da pessoa..." />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-md-3">
                         <label class="form-label small fw-bold">Parentesco / Relação *</label>
-                        <InputText class="form-control rounded-pill" @bind-Value="novoResponsavel.Parentesco" placeholder="Ex: Avô, Tio, Mãe..." />
+                        <InputText class="form-control rounded-pill" @bind-Value="novoResponsavel.Parentesco" placeholder="Ex: Avô, Tio..." />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-md-3">
                         <label class="form-label small fw-bold">Telefone / WhatsApp</label>
                         <InputText class="form-control rounded-pill" @bind-Value="novoResponsavel.Telefone" placeholder="(41) 99999-9999" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <label class="form-label small fw-bold">CPF</label>
                         <InputText class="form-control rounded-pill" @bind-Value="novoResponsavel.Cpf" placeholder="000.000.000-00" />
                     </div>
-                    <div class="col-md-4">
-                        <div class="form-check mt-4">
+                    <div class="col-12 col-md-4">
+                        <div class="form-check mt-md-4">
                             <InputCheckbox class="form-check-input" @bind-Value="novoResponsavel.Temporario" id="chkTemp" />
                             <label class="form-check-label small fw-semibold" for="chkTemp">Autorização Temporária?</label>
                         </div>
                     </div>
                     @if (novoResponsavel.Temporario)
                     {
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">Data Início</label>
                             <InputDate class="form-control rounded-pill" @bind-Value="novoResponsavel.DataInicio" />
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">Data Fim</label>
                             <InputDate class="form-control rounded-pill" @bind-Value="novoResponsavel.DataFim" />
                         </div>
                     }
                     <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm">Cadastrar Autorizado</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm btn-sm py-2">Cadastrar Autorizado</button>
                     </div>
                 </div>
             </EditForm>
         </div>
 
         <!-- Lista de Autorizados Cadastrados -->
-        <h6 class="fw-bold text-dark mb-3">Lista de Autorizados Atuais</h6>
+        <h6 class="fw-bold text-dark mb-3 fs-6">Lista de Autorizados Atuais</h6>
         @if (listaResponsaveis == null || !listaResponsaveis.Any())
         {
             <p class="text-muted small fst-italic">Nenhum responsável ou autorizado extra cadastrado para este aluno ainda.</p>
         }
         else
         {
-            <div class="table-responsive">
+            <!-- Tabela Desktop -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table align-middle mb-0 small">
                     <thead class="table-light">
                         <tr>
@@ -156,6 +157,35 @@
                         }
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Cards Mobile -->
+            <div class="d-block d-md-none">
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var resp in listaResponsaveis)
+                    {
+                        <div class="card border shadow-none rounded-3 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="fw-bold text-dark">@resp.NomeCompleto</div>
+                                <div>
+                                    @if (resp.Temporario)
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">⏱️ Temp</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success-subtle text-success px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">✅ Perm</span>
+                                    }
+                                </div>
+                            </div>
+                            <small class="text-muted mb-2">Relação: <strong>@resp.Parentesco</strong> | Tel: @resp.Telefone</small>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
+                                <span class="text-muted">CPF: @(string.IsNullOrEmpty(resp.Cpf) ? "Não informado" : resp.Cpf)</span>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 py-0.5" style="font-size: 0.7rem;" @onclick="() => RemoverResponsavel(resp.Id)">Excluir</button>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         }
     </div>

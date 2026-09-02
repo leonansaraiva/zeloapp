@@ -1,0 +1,239 @@
+@page "/escola/professores"
+@rendermode InteractiveServer
+@using ZeloApp.Models
+@using ZeloApp.Services
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@inject NavigationManager Navigation
+@inject AuthStateService Auth
+
+<PageTitle>Gestão de Professoras</PageTitle>
+
+<div class="container-fluid px-3 px-md-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-dark m-0 fs-3">👩‍🏫 Gestão do Corpo Docente</h2>
+            <p class="text-muted small m-0 mt-1">Gerencie professoras, especialistas em música, artes e regentes da instituição.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold" @onclick="AbrirModalNovo">
+            <i class="bi bi-plus-lg me-2"></i> Nova Professora
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagemSucesso))
+    {
+        <div class="alert alert-success rounded-4 p-3 shadow-sm mb-4">✅ @mensagemSucesso</div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+        <div class="alert alert-danger rounded-4 p-3 shadow-sm mb-4">❌ @mensagemErro</div>
+    }
+
+    <!-- TABELA DE LISTAGEM -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+        <div class="card-header bg-white p-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark m-0 fs-6">Professores Cadastrados</h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-1">Total: @listaProfessores.Count</span>
+        </div>
+
+        @if (listaProfessores.Count == 0)
+        {
+            <div class="text-center p-5 text-muted small">
+                Nenhuma professora cadastrada no sistema ainda. Clique em "Nova Professora" para começar.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 small">
+                    <thead class="table-light text-secondary">
+                        <tr>
+                            <th class="ps-3" style="width: 60px;">Foto</th>
+                            <th>Professora</th>
+                            <th>Especialidade</th>
+                            <th>Contato</th>
+                            <th>Cadastro</th>
+                            <th class="text-end pe-3">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in listaProfessores)
+                        {
+                            <tr>
+                                <td class="ps-3">
+                                    @if (!string.IsNullOrEmpty(p.FotoUrl))
+                                    {
+                                        <img src="@p.FotoUrl" alt="Foto" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">
+                                            @p.NomeCompleto.Substring(0, Math.Min(1, p.NomeCompleto.Length)).ToUpper()
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@p.NomeCompleto</div>
+                                    <small class="text-muted">@(string.IsNullOrEmpty(p.Endereco) ? "Endereço não informado" : p.Endereco)</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary fw-semibold px-2.5 py-1 rounded-pill">
+                                        @p.Especialidade
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="text-dark">@(string.IsNullOrEmpty(p.Telefone) ? "-" : p.Telefone)</div>
+                                    <small class="text-muted">@(string.IsNullOrEmpty(p.Email) ? "" : p.Email)</small>
+                                </td>
+                                <td>
+                                    <span class="text-muted">@p.DataInclusao.ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" @onclick="() => AbrirModalEdicao(p)">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @onclick="() => ExcluirProfessor(p.Id)">
+                                        <i class="bi bi-trash"></i> Excluir
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- MODAL DE CADASTRO / EDIÇÃO -->
+@if (exibirModal)
+{
+    <div class="modal show fade d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold text-dark fs-5">@(professorEmEdicao.Id == 0 ? "➕ Cadastrar Nova Professora" : "✏️ Editar Professora")</h5>
+                    <button type="button" class="btn-close" @onclick="FecharModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nome Completo *</label>
+                        <input type="text" class="form-control rounded-pill" @value="professorEmEdicao.NomeCompleto" @oninput="e => professorEmEdicao.NomeCompleto = e.Value?.ToString() ?? string.Empty" placeholder="Ex: Ana Paula Souza" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Especialidade / Área *</label>
+                        <input type="text" class="form-control rounded-pill" @value="professorEmEdicao.Especialidade" @oninput="e => professorEmEdicao.Especialidade = e.Value?.ToString() ?? string.Empty" placeholder="Ex: Professora de Música, Regente, Artes..." />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Link da Foto (URL)</label>
+                        <input type="text" class="form-control rounded-pill" @value="professorEmEdicao.FotoUrl" @oninput="e => professorEmEdicao.FotoUrl = e.Value?.ToString() ?? string.Empty" placeholder="https://exemplo.com/foto.jpg" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Telefone / WhatsApp</label>
+                            <input type="text" class="form-control rounded-pill" @value="professorEmEdicao.Telefone" @oninput="e => professorEmEdicao.Telefone = e.Value?.ToString() ?? string.Empty" placeholder="(00) 00000-0000" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">E-mail</label>
+                            <input type="email" class="form-control rounded-pill" @value="professorEmEdicao.Email" @oninput="e => professorEmEdicao.Email = e.Value?.ToString() ?? string.Empty" placeholder="email@escola.com" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Endereço Residencial</label>
+                        <input type="text" class="form-control rounded-pill" @value="professorEmEdicao.Endereco" @oninput="e => professorEmEdicao.Endereco = e.Value?.ToString() ?? string.Empty" placeholder="Rua, Número, Bairro" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" @onclick="FecharModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" @onclick="SalvarProfessor">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Professor> listaProfessores = new();
+    private Professor professorEmEdicao = new() { Especialidade = "Professor(a) Regente" };
+    private bool exibirModal = false;
+    private string mensagemSucesso = string.Empty;
+    private string mensagemErro = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarProfessores();
+    }
+
+    private async Task CarregarProfessores()
+    {
+        int escolaId = Auth.EscolaId ?? 0;
+        listaProfessores = await Db.Professores
+            .Where(p => p.EscolaId == escolaId || escolaId == 0)
+            .OrderBy(p => p.NomeCompleto)
+            .ToListAsync();
+    }
+
+    private void AbrirModalNovo()
+    {
+        professorEmEdicao = new() { Especialidade = "Professor(a) Regente", DataInclusao = DateTime.Now };
+        exibirModal = true;
+    }
+
+    private void AbrirModalEdicao(Professor professor)
+    {
+        professorEmEdicao = professor;
+        exibirModal = true;
+    }
+
+    private void FecharModal()
+    {
+        exibirModal = false;
+    }
+
+    private async Task SalvarProfessor()
+    {
+        mensagemSucesso = string.Empty;
+        mensagemErro = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(professorEmEdicao.NomeCompleto))
+        {
+            mensagemErro = "O nome completo da professora é obrigatório.";
+            return;
+        }
+
+        professorEmEdicao.EscolaId = Auth.EscolaId ?? 1;
+
+        if (professorEmEdicao.Id == 0)
+        {
+            professorEmEdicao.DataInclusao = DateTime.Now;
+            Db.Professores.Add(professorEmEdicao);
+            mensagemSucesso = "Professora cadastrada com sucesso!";
+        }
+        else
+        {
+            Db.Professores.Update(professorEmEdicao);
+            mensagemSucesso = "Dados da professora atualizados com sucesso!";
+        }
+
+        await Db.SaveChangesAsync();
+        exibirModal = false;
+        await CarregarProfessores();
+    }
+
+    private async Task ExcluirProfessor(int id)
+    {
+        var professor = await Db.Professores.FindAsync(id);
+        if (professor != null)
+        {
+            Db.Professores.Remove(professor);
+            await Db.SaveChangesAsync();
+            mensagemSucesso = "Professora removida com sucesso!";
+            await CarregarProfessores();
+        }
+    }
+}
